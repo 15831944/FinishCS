@@ -3,7 +3,6 @@
 #include "resource.h"
 #include "Global.h"
 #include "afxwin.h"
-#include "E:\VCPlatformTools\VC90\VC\atlmfc\include\afxwin.h"
 // DrawDomainDialog ¶Ô»°¿ò
 
 class DrawDomainDialog

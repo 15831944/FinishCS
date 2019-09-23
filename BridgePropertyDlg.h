@@ -1,5 +1,5 @@
 #pragma once
-#include "E:\VCPlatformTools\VC90\VC\atlmfc\include\afxwin.h"
+#include "afxwin.h"
 
 
 // BridgePropertyDlg ¶Ô»°¿ò
