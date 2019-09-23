@@ -771,6 +771,22 @@ void FCSNewGHSTYSGSTBYZ();
  * @返回 bool 成功返回值为true，否则返回值为false
  * @作者 杨发荷 
  * @邮箱 575814050@qq.com
+ * @时间 2019年9月23号
+ */
+void FCSDrawDomain();
+
+/* @接口 
+ * @返回 bool 成功返回值为true，否则返回值为false
+ * @作者 杨发荷 
+ * @邮箱 575814050@qq.com
+ * @时间 2019年9月23号
+ */
+void FCSHeightPropertySettingDlg();
+
+/* @接口 
+ * @返回 bool 成功返回值为true，否则返回值为false
+ * @作者 杨发荷 
+ * @邮箱 575814050@qq.com
  * @时间 2019年8月21号
  */
 void FCSModifyProjectRangeLineInfo();

@@ -99,13 +99,10 @@ public:
 
 private:
 
-	int m_num;//储存当前车位数目
-	double m_Scale;//根据比例尺的不同设置的缩放系数
-	TextProperty m_cw;//车位
-	TextProperty m_dscwzj;//地上车位注记
-	TextProperty m_dscwbh;//地上车位编号
-	TextProperty m_dxcwzj;//地下车位注记
-	TextProperty m_dxcwbh;//地下车位编号
+	int m_num;
+	double m_Scale;
+	TextProperty m_cw;				//车位
+	TextProperty m_cwzj;			//车位注记
 
 };
 

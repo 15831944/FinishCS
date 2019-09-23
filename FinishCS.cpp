@@ -99,7 +99,7 @@ void InitApplication()
 	if(false == RSA_Verify_Dog()) return;
 #endif
 #endif
-
+	
 #ifdef CODEMETER
 	//////////////////////////////////////////////////////////////////////////
 	//计算证书密钥
@@ -356,6 +356,8 @@ void InitApplication()
 	AddCommand(_T("FCS"), _T("FCSNewOpenAllLayer"), _T("FCSNewOpenAllLayer"), ACRX_CMD_USEPICKSET | ACRX_CMD_TRANSPARENT, FCSNewOpenAllLayer);
 	AddCommand(_T("FCS"), _T("FCSNewReConfigurationDlg"), _T("FCSNewReConfigurationDlg"), ACRX_CMD_USEPICKSET | ACRX_CMD_TRANSPARENT, FCSNewReConfigurationDlg);
 	AddCommand(_T("FCS"), _T("FCSNewGHSTYSGSTBYZ"), _T("FCSNewGHSTYSGSTBYZ"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSNewGHSTYSGSTBYZ);
+	AddCommand(_T("FCS"), _T("FCSDrawDomain"), _T("FCSDrawDomain"), ACRX_CMD_USEPICKSET | ACRX_CMD_TRANSPARENT, FCSDrawDomain);
+	AddCommand(_T("FCS"), _T("FCSHeightPropertySettingDlg"), _T("FCSHeightPropertySettingDlg"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSHeightPropertySettingDlg);
 
 	//13076890385
 	AddCommand(_T("FCS"), _T("FCSSetDLProjectCode"), _T("F8-0"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSSetDLProjectCode);
@@ -444,7 +446,8 @@ void InitApplication()
 	//AddCommand(_T("FCS"), _T("FCS"), _T("FCSModifyRoadHDMInfo"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSModifyRoadHDMInfo);		//设置道路横断面图例
 	 IDataBaseOper oper;	oper.readFieldChangeTable(); InitParaMeter();// FCSNewReConfigurationDlg();
 	//FCSProjectInfoPrompt(); //Text encryption	// TODO: add your initialization functions
-	 FCSTestCommand();
+	 FCSDrawDomain();
+	 //测试是否可以上传代码
 }
 
 // Unload this application. Unregister all objects
