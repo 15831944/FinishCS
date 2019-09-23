@@ -124,7 +124,7 @@ void CSetEntityPropery::setJGBuild(const AcDbObjectId &id)
 	setlayer(aname(id), build._layer);
 	AddXdata(aname(id), _T("建筑物名称"), 0, bName);
 	AddXdata(aname(id), _T("楼栋号"), 0, bName);
-	if (dxxCount == 0 && _tcscmp(bName, _T("地下室")) != 0)
+	if(dxxCount == 0)
 	{
 		if(RTNORM != ads_getreal(_T("\n 请输入规划楼栋高度"), &ghjzgd)) return;
 		MStr record; record[_T("楼栋号")] = bName;
@@ -136,15 +136,12 @@ void CSetEntityPropery::setJGBuild(const AcDbObjectId &id)
 	{
 		pdb.setBGGUID(bName);
 	}
-	if (_tcscmp(bName, _T("地下室")) != 0)
-	{
-		AcGePoint3d mid = getRectangleTopLeftPos(id);
-		AcDbObjectId mcid = DrawText(mid, bName, _T("MC"), _T(""), jzwmc._size * m_scale);
-		CString handle = GetHandleByObject(mcid);
-		setlayer(aname(mcid), jzwmc._layer);
-		setcolor(aname(mcid), jzwmc._color);
-		AddXdata(aname(id), _T("JZWMCZJ"), 0, handle);
-	}
+	AcGePoint3d mid = getRectangleTopLeftPos(id);
+	AcDbObjectId mcid = DrawText(mid, bName, _T("MC"), _T(""), jzwmc._size * m_scale);
+	CString handle = GetHandleByObject(mcid);
+	setlayer(aname(mcid), jzwmc._layer);
+	setcolor(aname(mcid), jzwmc._color);
+	AddXdata(aname(id), _T("JZWMCZJ"), 0, handle);
 
 	SelectFilter sf1(8, _T("XMFW")), sf2(5020, _T("*POLYLINE"));
 	AcDbObjectId xmfw; TCHAR zs[255] = {0};
@@ -202,33 +199,13 @@ void CSetEntityPropery::setBuild(const AcDbObjectId &id)
 	if(RTCAN == ads_getstring(0, _T("\n 请输入建筑物名称:"), bName)) return;
 	AddXdata(aname(id), _T("建筑物名称"), 0, bName);
 	AddXdata(aname(id), _T("楼栋号"), 0, bName);
-	MStr filter; 
-	IProjectMDB pdb;
-	filter[_T("楼栋号")].Format(_T("%s"), bName);
-	int dxxCount = 0; 
-	dxxCount = pdb.getRecordCount(_T("DXX"), filter); filter.clear();
-	if (dxxCount == 0)
-	{
-		double ghjzgd;
-		if (RTNORM != ads_getreal(_T("\n 请输入规划楼栋高度"), &ghjzgd))return;
-		filter[_T("楼栋号")] = bName;
-		filter[_T("规划高度")].Format(_T("%.21f"), ghjzgd);
-		pdb.setDXXTalbeInfo(MStr(), filter); filter.clear();
-	}
-	filter[_T("GUID")].Format(_T("%s"), bName);
-	int bgCount = 0;
-	bgCount = pdb.getRecordCount(_T("BG"), filter); filter.clear();
-	if (bgCount == 0)
-	{
-		pdb.setBGGUID(bName);
-	}
 	AcGePoint3d mid = getRectangleTopLeftPos(id);
 	AcDbObjectId mcid = DrawText(mid, bName, _T("MC"), _T(""), jzwmc._size * m_scale);
 	CString handle = GetHandleByObject(mcid);
 	setlayer(aname(mcid), jzwmc._layer);
 	setcolor(aname(mcid), jzwmc._color);
 	AddXdata(aname(id), _T("JZWMCZJ"), 0, handle);
-	//IProjectMDB pdb; pdb.setBGGUID(bName);
+	IProjectMDB pdb; pdb.setBGGUID(bName);
 
 	SelectFilter sf1(8, _T("XMFW")), sf2(5020, _T("*POLYLINE"));
 	AcDbObjectId xmfw; TCHAR zs[255] = {0};

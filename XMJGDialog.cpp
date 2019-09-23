@@ -2655,13 +2655,11 @@ bool XMJGChangePictureProperty::selectPictures()
 	IProjectMDB pdb;
 	MStr jbxx = pdb.getJBXXTableInfo();
 	CString name_code = jbxx[_T("受理号")].MakeLower() + _T("_") + jbxx[_T("项目名称")].MakeLower() + _T("\\规划\\ck\\");
-	CString filter = _T("图片文件|*.jpg;*.bmp;*.png;*.wmf|所有文件|*.*||");
+
+	CString filter = _T("图片文件|*.jpg;*.bmp;*.png|所有文件|*.*||");
 	CFileDialog fileDlg(TRUE, NULL, NULL,
 		OFN_ALLOWMULTISELECT | OFN_ENABLESIZING | OFN_HIDEREADONLY,
 		filter);
-	IDataBaseOper oper;
-	CString ppath = oper.readPathTable("当前目录"); ppath += _T("\\CK\\");
-	fileDlg.m_ofn.lpstrInitialDir = ppath.GetBuffer(); ppath.ReleaseBuffer();
 	const int MIN_FILE_NUMBER = 10;																//至少允许选择10个文件
 	fileDlg.m_ofn.lpstrFile = new TCHAR[_MAX_PATH * MIN_FILE_NUMBER];							//重新定义缓冲区大小          
 	memset(fileDlg.m_ofn.lpstrFile, 0, _MAX_PATH * MIN_FILE_NUMBER);							//初始化定义的缓冲区

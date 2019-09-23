@@ -331,10 +331,10 @@
     <ClCompile Include="MoveJig.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="DrawDomainDialog.cpp">
+    <ClCompile Include="domainoperate.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
-    <ClCompile Include="domainoperate.cpp">
+    <ClCompile Include="DrawDomainDialog.cpp">
       <Filter>源文件</Filter>
     </ClCompile>
     <ClCompile Include="heightpropertysettingdlg.cpp">
@@ -498,10 +498,10 @@
     <ClInclude Include="MoveJig.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="DrawDomainDialog.h">
+    <ClInclude Include="domainoperate.h">
       <Filter>头文件</Filter>
     </ClInclude>
-    <ClInclude Include="domainoperate.h">
+    <ClInclude Include="DrawDomainDialog.h">
       <Filter>头文件</Filter>
     </ClInclude>
     <ClInclude Include="heightpropertysettingdlg.h">
