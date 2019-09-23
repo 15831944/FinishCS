@@ -93,12 +93,6 @@ void CNewSetLayerInfoDlg::OnOK()
 		else if(elyr > slyr)
 			record[_T("层数")].Format(_T("%d"), elyr - slyr + 1);
 
-		// 		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
-		// 		if(val.GetLength() == 0)
-		// 		{
-		// 			MessageBox(_T("请设置实测层高"), _T("错误信息")); return;
-		// 		}
-		// 		record[_T("实测层高")] = val;
 		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
 		record[_T("设计层高")] = val;
 		AddXdata(aname(m_id), _T("IsLoftLayer"), 0, isLoftLayer);
@@ -114,7 +108,7 @@ void CNewSetLayerInfoDlg::OnOK()
 		record[_T("楼层号")].Format(_T("%d"), idx + 1);
 		record[_T("是否跃层")].Format(_T("%s"), isLoftLayer);
 		VMStr selectrow;
-		if(pdb.hasTableRow(_T("CXX"), filter, selectrow))
+		if(pdb.getRecordCount(_T("CXX"), filter))
 		{
 			pdb.updataCXXTableInfo(filter, record);
 			pdb.hasTableRow(_T("CXX"), filter, selectrow);

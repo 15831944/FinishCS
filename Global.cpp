@@ -56,12 +56,13 @@ void GetMiddlePoint(const AcDbObjectId &id, AcGePoint2d &mid)
 	mid.y = (ptMin[Y] + ptMax[Y]) / 2;
 }
 
-void GetMiddlePoint(const AcDbObjectId &id, AcGePoint3d &mid)
+void GetMiddlePoint(const AcDbObjectId &id, AcGePoint3d &mid)//获得几何实体的最小外包矩形的中心
 {
 	AcGePoint2dArray nodes;
-	GetPlList(aname(id), nodes);
+	GetPlList(aname(id), nodes);//获得几何实体的所有节点
 	ads_point ptMin, ptMax;
-	GetPolyExtent(nodes, ptMin, ptMax, 0);
+	GetPolyExtent(nodes, ptMin, ptMax, 0);//获得几何实体最小外包矩形的左下角点和右上角点
+	//最小外包矩形的左下角点和右上角点的中点就是中点
 	mid.x = (ptMin[X] + ptMax[X]) / 2;
 	mid.y = (ptMin[Y] + ptMax[Y]) / 2;
 	mid.z = (ptMin[Z] + ptMax[Z]) / 2;
@@ -1308,11 +1309,12 @@ bool SelectEntitysOr(AcDbObjectIdArray &ids, const SelectFilter &f1, const Selec
 		return false;
 	}
 	ads_relrb(rc);
-	AcDbObjectIdArray tids;
-	SSToIdArr(ssName, tids);
-	if(tids.length() != 0)
-		CopyEntitys(tids, ids);
-	return tids.length() != 0;
+	//AcDbObjectIdArray tids;
+	if (ids.isEmpty() != true)ids.removeAll();
+	SSToIdArr(ssName, ids);
+	//if(tids.length() != 0)
+	//	CopyEntitys(tids, ids);
+	return !ids.isEmpty();
 }
 
 bool SelectEntitysOr(AcDbObjectIdArray &ids, const SelectFilter &f1, const SelectFilter &f2, const SelectFilter &f3, const TCHAR *way)
@@ -2545,11 +2547,11 @@ TextProperty IDataBaseOper::readTextPropery(const CString &name, bool size, bool
 {
 	TextProperty text;
 	if(font == true)
-		readCommonTable(name + _T("字体"), text._font);
+		readCommonTable(name + _T("字体"), text._font);//读取Common表中的“建筑竣工车位注记字体”
 	if(size == true)
-		readCommonTable(name + _T("大小"), text._size);
-	readCommonTable(name + _T("图层"), text._layer);
-	readCommonTable(name + _T("颜色"), text._color);
+		readCommonTable(name + _T("大小"), text._size);//读取Common表中的“建筑竣工车位注记大小”
+	readCommonTable(name + _T("图层"), text._layer);//读取Common表中的“建筑竣工车位图层”或者“建筑竣工车位注记图层”
+	readCommonTable(name + _T("颜色"), text._color);//读取Common表中的“建筑竣工车位颜色”或者“建筑竣工车位注记颜色”
 	return text;
 }
 
@@ -3523,7 +3525,7 @@ MSSIds sortGNQByXData(const AcDbObjectIdArray &ids)
 		ReadXdata(aname(id), _T("梯间名称"), 0, value);
 		if(_tcslen(value) != 0) tj = value; CString jrxs;
 		if(!ReadXdata(aname(id), _T("功能区高度"), 0, value)) continue;
-		temp.Format(_T("高度%.2lf"), _tstof(value));
+		temp.Format(_T("层高%.2lfm"), _tstof(value));
 		if(!ReadXdata(aname(id), _T("计容系数"), 0, value)) continue;
 		if(_tstof(value) > EPS) jrxs.Format(_T("，计容系数%.2lf"), _tstof(value));
 		temp += jrxs; if(mssids.find(tj) == mssids.end()) mssids[tj] = MSIds();
@@ -3828,26 +3830,26 @@ AcDbObjectId drawLine()
 	return aname(ent);
 }
 
-AcDbObjectId drawLine(const CString &_layer, int _color)
+AcDbObjectId drawLine(const CString &_layer, int _color)//创建多段线并且设置多段线的图层和颜色
 {
 	struct resbuf *cmd, *result; ads_name ent;
-	cmd = ads_buildlist(RTSTR, _T("drawdjf"), RTSTR, _T(""), RTNONE);
-	ads_invoke(cmd, &result);
-	ads_relrb(cmd);
-	if(result == NULL) return AcDbObjectId::kNull;
-	if(RTENAME == result->restype)
+	cmd = ads_buildlist(RTSTR, _T("drawdjf"), RTSTR, _T(""), RTNONE);//创建画多段线的指令
+	ads_invoke(cmd, &result);//画多段线
+	ads_relrb(cmd);//释放画多段线指令
+	if(result == NULL) return AcDbObjectId::kNull;//如果没有返回值，则创建失败，返回空ID号
+	if(RTENAME == result->restype)//如果返回的是实体，则创建成功
 	{
-		ads_name_set(result->resval.rlname, ent);
-		ads_relrb(result);
+		ads_name_set(result->resval.rlname, ent);//将返回值赋给ent
+		ads_relrb(result);//释放实体缓冲集
 	}
-	else
+	else//如果返回的不是实体，则创建失败
 	{
-		ads_relrb(result);
-		return AcDbObjectId::kNull;
+		ads_relrb(result);//释放实体缓冲集
+		return AcDbObjectId::kNull;//返回空ID号
 	}
-	setlayer(ent, _layer);
-	setcolor(ent, _color);
-	return aname(ent);
+	setlayer(ent, _layer);//设置创建的多段线图层
+	setcolor(ent, _color);//设置创建的多段线颜色
+	return aname(ent);//返回多段线ID号，aname获得ads_name对应的ID号
 }
 
 long TimeConvertLong(const CString &value)

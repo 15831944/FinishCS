@@ -447,7 +447,6 @@ void InitApplication()
 	 IDataBaseOper oper;	oper.readFieldChangeTable(); InitParaMeter();// FCSNewReConfigurationDlg();
 	//FCSProjectInfoPrompt(); //Text encryption	// TODO: add your initialization functions
 	 FCSDrawDomain();
-	 //测试是否可以上传代码
 }
 
 // Unload this application. Unregister all objects

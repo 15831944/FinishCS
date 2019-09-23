@@ -2256,8 +2256,8 @@ void FCSDimLine()
 			}
 			else if(ids.length() == 1)
 			{
-				lineid = ids.first();
-				if(isSave == 1) CopyEntity(lineid);
+				lineid = CopyEntity(ids.first());
+				if(isSave == 2) EntsDel(ids);
 			}
 			else return;
 			if(type == 1) prop.setProjectLine(lineid);
