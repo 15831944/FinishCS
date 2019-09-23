@@ -14,8 +14,8 @@
 IMPLEMENT_DYNAMIC(CNewSetLayerInfoDlg, CDialog)
 
 CNewSetLayerInfoDlg::CNewSetLayerInfoDlg(bool isLayer, CWnd* pParent /*=NULL*/)
-	: CDialog(CNewSetLayerInfoDlg::IDD, pParent)
-	, m_id(AcDbObjectId::kNull), m_isLayer(isLayer)
+: CDialog(CNewSetLayerInfoDlg::IDD, pParent)
+, m_id(AcDbObjectId::kNull), m_isLayer(isLayer)
 {
 
 }
@@ -75,7 +75,7 @@ void CNewSetLayerInfoDlg::OnOK()
 		record[_T("终止层名")] = val; int elyr = _ttoi(val);
 		if(elyr == 0)
 		{
-			val = record[_T("起始层名")];
+			val = record[_T("起始层名")]; 
 			if(val.Find(_T(';')) == -1) record[_T("层数")] = _T("1");
 			else
 			{
@@ -90,31 +90,26 @@ void CNewSetLayerInfoDlg::OnOK()
 			CString error; error.Format(_T("楼层设信息设置错误，请检查，错误发生在在第%d行"), idx);
 			MessageBox(error, _T("错误信息"), 0); return;
 		}
-		else if(elyr > slyr)
+		else if (elyr > slyr)
 			record[_T("层数")].Format(_T("%d"), elyr - slyr + 1);
 
-		// 		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
-		// 		if(val.GetLength() == 0)
-		// 		{
-		// 			MessageBox(_T("请设置实测层高"), _T("错误信息")); return;
-		// 		}
-		// 		record[_T("实测层高")] = val;
+		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
+		if(val.GetLength() == 0)
+		{
+			MessageBox(_T("请设置实测层高"), _T("错误信息")); return;
+		}
+		record[_T("实测层高")] = val;
 		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
 		record[_T("设计层高")] = val;
 		AddXdata(aname(m_id), _T("IsLoftLayer"), 0, isLoftLayer);
-		//		double gdcz = _tstof(record[_T("实测层高")]) - _tstof(record[_T("设计层高")]);
-		//		record[_T("高度差值")].Format(_T("%.3lf"), gdcz);
-
-		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
-		record[_T("规划局部层高下限")] = val;
-		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
-		record[_T("规划局部层高上限")] = val;
+		double gdcz = _tstof(record[_T("实测层高")]) - _tstof(record[_T("设计层高")]);
+		record[_T("高度差值")].Format(_T("%.3lf"), gdcz);
 		val = m_LayerInfos.GetItemText(idx, offset++); val.Trim();
 		record[_T("层备注")] = val;
 		record[_T("楼层号")].Format(_T("%d"), idx + 1);
-		record[_T("是否跃层")].Format(_T("%s"), isLoftLayer);
+		//record[_T("是否跃层")].Format(_T("%s"), isLoftLayer);
 		VMStr selectrow;
-		if(pdb.hasTableRow(_T("CXX"), filter, selectrow))
+		if (pdb.getRecordCount(_T("CXX"), filter))
 		{
 			pdb.updataCXXTableInfo(filter, record);
 			pdb.hasTableRow(_T("CXX"), filter, selectrow);
@@ -173,22 +168,25 @@ void CNewSetLayerInfoDlg::initListCtrl()
 {
 	int offset = 0;
 	CRect rect; m_LayerInfos.GetClientRect(&rect);
-	int width = (rect.right - rect.left - 300) / 6;
-	m_LayerInfos.SetExtendedStyle(m_LayerInfos.GetExtendedStyle() | LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
+	int width = (rect.right - rect.left - 240) / 5;
+	m_LayerInfos.SetExtendedStyle(m_LayerInfos.GetExtendedStyle()|LVS_EX_GRIDLINES | LVS_EX_FULLROWSELECT | LVS_EX_CHECKBOXES);
 	if(m_isLayer)
-		m_LayerInfos.InsertColumn(offset++, _T("主楼层"), LVCFMT_CENTER, 60);
+		m_LayerInfos.InsertColumn(offset, _T("主楼层"));
 	else
-		m_LayerInfos.InsertColumn(offset++, _T("是否显示"), LVCFMT_CENTER, 60);
-	m_LayerInfos.InsertColumn(offset++, _T("楼栋号"), LVCFMT_CENTER, width);
-	m_LayerInfos.InsertColumn(offset++, _T("起始层名"), LVCFMT_CENTER, width);
-	m_LayerInfos.InsertColumn(offset++, _T("终止层名"), LVCFMT_CENTER, width);
-	//	m_LayerInfos.SetColumnWidth(offset++, width);
-	// 	m_LayerInfos.InsertColumn(offset, _T("实测层高"));
-	// 	m_LayerInfos.SetColumnWidth(offset++, width);
-	m_LayerInfos.InsertColumn(offset++, _T("设计层高"), LVCFMT_CENTER, width);
-	m_LayerInfos.InsertColumn(offset++, _T("规划局部层高下限"), LVCFMT_CENTER, width);
-	m_LayerInfos.InsertColumn(offset++, _T("规划局部层高上限"), LVCFMT_CENTER, width);
-	m_LayerInfos.InsertColumn(offset, _T("层备注"), LVCFMT_CENTER, 240);
+		m_LayerInfos.InsertColumn(offset, _T("是否显示"));
+	m_LayerInfos.SetColumnWidth(offset++, 60);
+	m_LayerInfos.InsertColumn(offset, _T("楼栋号"));
+	m_LayerInfos.SetColumnWidth(offset++, width);
+	m_LayerInfos.InsertColumn(offset, _T("起始层名"));
+	m_LayerInfos.SetColumnWidth(offset++, width);
+	m_LayerInfos.InsertColumn(offset, _T("终止层名"));
+	m_LayerInfos.SetColumnWidth(offset++, width);
+	m_LayerInfos.InsertColumn(offset, _T("实测层高"));
+	m_LayerInfos.SetColumnWidth(offset++, width);
+	m_LayerInfos.InsertColumn(offset, _T("设计层高"));
+	m_LayerInfos.SetColumnWidth(offset++, width);
+	m_LayerInfos.InsertColumn(offset, _T("层备注"));
+	m_LayerInfos.SetColumnWidth(offset++, 240);
 	m_LayerInfos.SetColumnReadOnly(0, TRUE);
 }
 
@@ -244,9 +242,8 @@ void CNewSetLayerInfoDlg::setListCtrlData()
 		m_LayerInfos.SetItemText(row, offset++, m_buildName);
 		m_LayerInfos.SetItemText(row, offset++, record[_T("起始层名")]);
 		m_LayerInfos.SetItemText(row, offset++, record[_T("终止层名")]);
+		m_LayerInfos.SetItemText(row, offset++, record[_T("实测层高")]);
 		m_LayerInfos.SetItemText(row, offset++, record[_T("设计层高")]);
-		m_LayerInfos.SetItemText(row, offset++, record[_T("规划局部层高下限")]);
-		m_LayerInfos.SetItemText(row, offset++, record[_T("规划局部层高上限")]);
 		m_LayerInfos.SetItemText(row, offset++, record[_T("层备注")]);
 	}
 }
@@ -261,9 +258,9 @@ void CNewSetLayerInfoDlg::OnBnClickedButtonMoveup()
 	for(int idx = 0; idx < total; ++idx)
 	{
 		CString info;
-		if(idx == 0)
+		if (idx == 0)
 		{
-			if(m_LayerInfos.GetCheck(sel))
+			if (m_LayerInfos.GetCheck(sel))
 				info = _T("1");
 			else
 				info = _T("0");;
@@ -274,14 +271,14 @@ void CNewSetLayerInfoDlg::OnBnClickedButtonMoveup()
 	}
 	m_LayerInfos.DeleteItem(sel);
 	m_LayerInfos.InsertItem(sel - 1, _T(""));
-	for(int idx = 0; idx < total; ++idx)
+	for (int idx = 0; idx < total; ++idx)
 	{
-		if(idx == 0)
+		if (idx == 0)
 		{
-			if(infos[0].CompareNoCase(_T("1")) == 0)
-				m_LayerInfos.SetCheck(sel - 1, TRUE);
+			if (infos[0].CompareNoCase(_T("1")) == 0)
+				m_LayerInfos.SetCheck(sel-1, TRUE);
 			else
-				m_LayerInfos.SetCheck(sel - 1, FALSE);
+				m_LayerInfos.SetCheck(sel-1, FALSE);
 		}
 		else
 			m_LayerInfos.SetItemText(sel - 1, idx, infos[idx]);
@@ -309,9 +306,9 @@ void CNewSetLayerInfoDlg::OnBnClickedButtonMovedown()
 	for(int idx = 0; idx < total; ++idx)
 	{
 		CString info;
-		if(idx == 0)
+		if (idx == 0)
 		{
-			if(m_LayerInfos.GetCheck(sel))
+			if (m_LayerInfos.GetCheck(sel))
 				info = _T("1");
 			else
 				info = _T("0");;
@@ -322,17 +319,17 @@ void CNewSetLayerInfoDlg::OnBnClickedButtonMovedown()
 	}
 	m_LayerInfos.DeleteItem(sel);
 	m_LayerInfos.InsertItem(sel + 1, _T(""));
-	for(int idx = 0; idx < total; ++idx)
+	for (int idx = 0; idx < total; ++idx)
 	{
-		if(idx == 0)
+		if (idx == 0)
 		{
-			if(infos[0].CompareNoCase(_T("1")) == 0)
+			if (infos[0].CompareNoCase(_T("1")) == 0)
 				m_LayerInfos.SetCheck(sel + 1, TRUE);
 			else
 				m_LayerInfos.SetCheck(sel + 1, FALSE);
 		}
 		else
-			m_LayerInfos.SetItemText(sel + 1, idx, infos[idx]);
+		m_LayerInfos.SetItemText(sel + 1, idx, infos[idx]);
 	}
 	m_LayerInfos.setSelectItem(sel + 1);
 }
@@ -392,14 +389,10 @@ void CNewSetLayerInfoDlg::OnBnClickedButtonMagerlayer()
 		if((isCheck = m_LayerInfos.GetCheck(selRow))) break;
 	vector<int> sels; m_LayerInfos.GetSelectedItem(sels);
 	if(!isCheck || sels.size() != 2)
-	{
-		MessageBox(_T("请选择主要楼层或没有选择合并的楼层"), _T("错误提示"), 0); return;
-	}
+	{ MessageBox(_T("请选择主要楼层或没有选择合并的楼层"), _T("错误提示"), 0); return; }
 	_row = (selRow == sels[0]) ? sels[1] : sels[0]; CString slyr;
 	if(abs(_row - selRow) != 1)
-	{
-		MessageBox(_T("选择待合并的楼层错误"), _T("错误提示"), 0); return;
-	}
+	{ MessageBox(_T("选择待合并的楼层错误"), _T("错误提示"), 0); return; }
 	for(int idx = 0; idx < sels.size(); ++idx)
 	{
 		CString lName = m_LayerInfos.GetItemText(sels[idx], 2);

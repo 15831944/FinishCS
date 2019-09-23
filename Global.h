@@ -1085,14 +1085,6 @@ public:
 	 * @时间 2017年11月21号
 	 */
 	MStr getProjectInfo();
-	
-	/* @接口 
-	 * @返回 bool 成功返回值为true，否则返回值为false
-	 * @作者 杨发荷 
-	 * @邮箱 575814050@qq.com
-	 * @时间 2019年9月23号
-	 */
-	VMStr getBGInfoTable();
 
 	/* @接口
 	 * @作者 杨发荷
@@ -1528,15 +1520,6 @@ public:
 	 */
 	void setBGInfoTable(const CString &, const CString &, const CString &);
 
-	/* @接口 设置标高信息
-	 * @参数 CString 设置标高字段
-	 * @参数 CString 设置的标高值
-	 * @作者 杨发荷
-	 * @邮箱 575814050@qq.com
-	 * @时间 2018年2月26号
-	 */
-	void setBGInfoTable(const CString &, const CString &, const CString &, const CString &, const CString &);
-
 	/* @接口
 	 * @参数
 	 * @作者 杨发荷
@@ -1544,7 +1527,7 @@ public:
 	 * @时间 2018年3月15号
 	 */
 	void setBGGUID(const CString &);
-	
+
 	/* @接口 设置通道主体位置
 	 * @参数 CString 设置通道主体的类型（通道主体起点X、通道主体起点Y、通道主体终点X、通道主体终点Y）
 	 * @参数 CString 通道主体位置的值

@@ -2044,7 +2044,7 @@ public:
 	* @author 杨发荷
 	* @time 2017年4月13号
 	*/
-	void DrawTuKuang(const AcGePoint2d &, const AcGePoint2d &, bool flag = false);
+	void DrawTuKuang(const AcGePoint2d &, const AcGePoint2d &);
 
 	/* @function 添加图框四个角点坐标
 	* @param AcGePoint2d 被保存实体的左下角点

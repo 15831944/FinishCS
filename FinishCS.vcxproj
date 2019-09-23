@@ -109,7 +109,7 @@
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <UseOfMfc>Dynamic</UseOfMfc>
     <CharacterSet>MultiByte</CharacterSet>
-    <PlatformToolset>v70</PlatformToolset>
+    <PlatformToolset>v90</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
@@ -661,14 +661,14 @@
       <Optimization>Disabled</Optimization>
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WINDLL;_AFXEXT;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;_WINDLL;_AFXEXT;_CRT_SECURE_NO_WARNINGS;_CRT_NON_CONFORMING_SWPRINTFS;XIAMEN;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AssemblerListingLocation>.\Release\</AssemblerListingLocation>
       <PrecompiledHeaderOutputFile>.\Release\FinishCS.pch</PrecompiledHeaderOutputFile>
       <PrecompiledHeader>Use</PrecompiledHeader>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <ObjectFileName>.\Release\</ObjectFileName>
       <ProgramDataBaseFileName>.\Release\</ProgramDataBaseFileName>
-      <AdditionalIncludeDirectories>C:\90;C:\80;C:\public;C:\80\AutoB;C:\public\wmf;c:\CASS\public;c:\CASS\cassPub;c:\CASS\entityPub;c:\CASS\officePub;C:\public\gdal\include;C:\public\gdal\include\port;c:\public\smarttable\include;C:\public\gdal\include\gcore;D:\ObjectARX\ObjectARX 2010\inc;D:\ObjectARX\ObjectARX 2010\inc-win32;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>C:\public\gdal\include\port;D:\ObjectARX\ObjectARX 2010\inc;C:\public\gdal\include\gcore;C:\public\gdal\include;D:\ObjectARX\ObjectARX 2010\inc-win32;C:\public;C:\90;C:\80;C:\80\AutoB;c:\CASS\public;c:\CASS\officePub;c:\CASS\entityPub;c:\CASS\cassPub;c:\public\smarttable\include;C:\public\wmf;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
     </ClCompile>
     <Midl>
@@ -690,11 +690,11 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkDLL>true</LinkDLL>
       <SubSystem>Windows</SubSystem>
-      <OutputFile>D:\cass\CASS2010\CASS 92 XMJG For AutoCAD2010\bin\$(ProjectName).arx</OutputFile>
+      <OutputFile>D:\Program Files (x86)\Cass_JG_XM For AutoCAD2010\bin\$(ProjectName).arx</OutputFile>
       <ImportLibrary>.\Release\FinishCS.lib</ImportLibrary>
-      <AdditionalDependencies>asiapi18.lib;acapp.lib;AcPublish.lib;AcFdEval.lib;AcFdUi.lib;AcTcUi.lib;AcCamera.lib;acui18.lib;aNav.lib;adui18.lib;AdApplicationFrame.lib;aseapi18.lib;acdbmgd.lib;AcTc.lib;acad.lib;axdb.lib;AcWipeoutObj18.lib;acismobj18.lib;AcSceneOE.lib;acdb18.lib;acge18.lib;rxapi.lib;AcMPolygonObj18.lib;smarttablebase.lib;wmf.lib;gdal_i.lib;libmupdf.lib;acedapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>rxapi.lib;acad.lib;acdb18.lib;acge18.lib;acedapi.lib;acgiapi.lib;adui18.lib;acui18.lib;acISMobj18.lib;AcMPolygonObj18.lib;smarttablebase.lib;wmf.lib;gdal_i.lib;libmupdf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>.\FinishCS.def</ModuleDefinitionFile>
-      <AdditionalLibraryDirectories>C:\public\wmf;C:\public\mupdf;C:\public\gdal\lib\x86;C:\public\smarttable\win32\release_v90;D:\ObjectARX\ObjectARX 2010\lib-win32;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>D:\ObjectARX\ObjectARX 2010\lib-win32;C:\public\smarttable\win32\release_v90;C:\public\gdal\lib\x86;C:\public\mupdf;C:\public\wmf;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>libc.lib</IgnoreSpecificDefaultLibraries>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
@@ -1550,7 +1550,6 @@
     <ClCompile Include="FinishCS.cpp" />
     <ClCompile Include="FinishCSCommands.cpp" />
     <ClCompile Include="Global.cpp" />
-    <ClCompile Include="heightpropertysettingdlg.cpp" />
     <ClCompile Include="importdata.cpp" />
     <ClCompile Include="InfomationOfProjectRangeLine.cpp" />
     <ClCompile Include="JoinTriangles.cpp" />
@@ -1662,7 +1661,6 @@
     <ClInclude Include="excelRpt.h" />
     <ClInclude Include="ExtractTextdlg.h" />
     <ClInclude Include="Global.h" />
-    <ClInclude Include="heightpropertysettingdlg.h" />
     <ClInclude Include="importdata.h" />
     <ClInclude Include="InfomationOfProjectRangeLine.h" />
     <ClInclude Include="lineparallel.h" />
