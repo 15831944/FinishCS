@@ -31,7 +31,6 @@
 #include "XMJGReConfigurationDlg.h"
 #include "InfomationOfProjectRangeLine.h"
 #include "MoveJig.h"
-#include "heightpropertysettingdlg.h"
 
 CProjectInfoDockbar g_projectpromptdock;
 extern FieldChangeTable g_fieldchagetable;
@@ -2256,8 +2255,8 @@ void FCSDimLine()
 			}
 			else if(ids.length() == 1)
 			{
-				lineid = ids.first();
-				if(isSave == 1) CopyEntity(lineid);
+				lineid = CopyEntity(ids.first());
+				if(isSave == 2) EntsDel(ids);
 			}
 			else return;
 			if(type == 1) prop.setProjectLine(lineid);
@@ -3164,7 +3163,20 @@ DrawDomainDialog g_drawDomainDialog;
 
 void FCSTestCommand()
 {
-	
+	CAcModuleResourceOverride myResources;
+	g_DrawDomainDockControl.setChildDlg(&g_drawDomainDialog, DrawDomainDialog::IDD);
+	if(g_DrawDomainDockControl.GetSafeHwnd() != NULL)
+	{
+		if(g_DrawDomainDockControl.IsVisible() == false)
+			acedGetAcadFrame()->ShowControlBar(&g_DrawDomainDockControl, TRUE, FALSE);
+	}
+	else
+	{
+		g_DrawDomainDockControl.Create(acedGetAcadFrame(), _T(""));
+		g_DrawDomainDockControl.EnableDocking(CBRS_ALIGN_TOP);
+		g_DrawDomainDockControl.RestoreControlBar();
+	}
+	g_DrawDomainDockControl.RestoreControlBar(AFX_IDW_DOCKBAR_TOP);
 	return;
 
 
@@ -4265,30 +4277,6 @@ void FCSNewGHSTYSGSTBYZ()
 {
 	SEEKDOG(); HOUSE(house);
 	house.newGHSTYSGSTBYZ();
-}
-
-void FCSDrawDomain()
-{
-	CAcModuleResourceOverride myResources;
-	g_DrawDomainDockControl.setChildDlg(&g_drawDomainDialog, DrawDomainDialog::IDD);
-	if(g_DrawDomainDockControl.GetSafeHwnd() != NULL)
-	{
-		if(g_DrawDomainDockControl.IsVisible() == false)
-			acedGetAcadFrame()->ShowControlBar(&g_DrawDomainDockControl, TRUE, FALSE);
-	}
-	else
-	{
-		g_DrawDomainDockControl.Create(acedGetAcadFrame(), _T(""));
-		g_DrawDomainDockControl.EnableDocking(CBRS_ALIGN_TOP);
-		g_DrawDomainDockControl.RestoreControlBar();
-	}
-	g_DrawDomainDockControl.RestoreControlBar(AFX_IDW_DOCKBAR_TOP);
-}
-
-void FCSHeightPropertySettingDlg()
-{
-	CHeightPropertySettingDlg dlg;
-	dlg.DoModal();
 }
 
 void FCSModifyProjectRangeLineInfo()

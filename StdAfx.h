@@ -151,7 +151,6 @@ extern HINSTANCE _hdllInstance ;
 #include "rxmfcapi.h"           // ObjectARX MFC support
 #include "AcExtensionModule.h"  // Utility class for extension dlls
 #include <afxcontrolbars.h>
-#include <afxwin.h>
 
 
 #ifdef _FULLDEBUG_

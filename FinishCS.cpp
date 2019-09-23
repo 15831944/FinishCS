@@ -446,8 +446,7 @@ void InitApplication()
 	//AddCommand(_T("FCS"), _T("FCS"), _T("FCSModifyRoadHDMInfo"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSModifyRoadHDMInfo);		//设置道路横断面图例
 	 IDataBaseOper oper;	oper.readFieldChangeTable(); InitParaMeter();// FCSNewReConfigurationDlg();
 	//FCSProjectInfoPrompt(); //Text encryption	// TODO: add your initialization functions
-	 FCSDrawDomain(); 
-	 //测试是否可以上传代码
+	 FCSTestCommand();
 }
 
 // Unload this application. Unregister all objects

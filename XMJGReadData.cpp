@@ -2182,9 +2182,9 @@ void XMJGCheckLine::AutoBuildingInsideAnnotion()
 			else
 			{
 				dist_str.Format(_T("%.2f"), dist);
-				ads_polar(apoint(midpt), angle + angle_reverse * PI, m_fwbczj._size * m_Scale, insertpt);
+				ads_polar(apoint(midpt), angle + angle_reverse * PI, 0.4 * m_Scale, insertpt);
 			}
-			if(angle > PI / 2 && angle < 3 * PI / 2) angle -= PI;
+			if (angle > PI / 2 + EPS && angle < 3 * PI / 2 + EPS) angle -= PI;
 			AcDbObjectId textID = DrawText(insertpt, dist_str, _T("MC"), _T("20000"), m_fwbczj._size * m_Scale, angle, 1.0);
 			setcolor(aname(textID), m_fwbczj._color);
 			setlayer(aname(textID), m_fwbczj._layer);
@@ -4287,11 +4287,11 @@ void XMJGHouse::StatisticFunctionArea()
 		GetEntExtent(aname(id), pmin, pmax);
 		ZoomWindow(pmin, pmax); TCHAR gd[25] = {0};
 		ReadXdata(aname(id), _T("楼层高"), 0, info);
-		for(int idx = 0; idx < ids.length(); ++idx)
+		for(int idxx = 0; idxx < ids.length(); ++idxx)
 		{
-			ReadXdata(aname(ids[idx]), _T("功能区高度"), 0, gd);
+			ReadXdata(aname(ids[idxx]), _T("功能区高度"), 0, gd);
 			if(_tcslen(gd) == 0)
-				AddXdata(aname(ids[idx]), _T("功能区高度"), 0, info);
+				AddXdata(aname(ids[idxx]), _T("功能区高度"), 0, info);
 		}
 		readFunctionInfo(ids, IdArr);
 	}
@@ -4847,38 +4847,40 @@ void XMJGHouse::lineConvertChangeArea()
 
 void XMJGHouse::AddFunctionAnnotion()
 {
-	SelectFilter f1(8, m_fcpm._layer);
-	SelectFilter f2(RTDXF0, _T("*POLYLINE"));
+	SelectFilter f1(8, m_fcpm._layer);//创建用于筛选分层平面外边界线的图层筛选条件
+	SelectFilter f2(RTDXF0, _T("*POLYLINE"));//创建用于筛选分层平面外边界线的线型筛选条件
 	AcDbObjectIdArray objects, IdArr;
-	if(false == SelectEntitys(objects, f1, f2, _T(""))) return;
-	int len = objects.length(); ads_point pmin, pmax;
-	TCHAR layer[200] = {0}; IProjectMDB pdb;
+	if(false == SelectEntitys(objects, f1, f2, _T(""))) return;//筛选所有分层平面，将它们的id号赋值给objects
+	int len = objects.length();/*获得分层平面的个数*/ ads_point pmin, pmax;
+	TCHAR layer[200] = {0}; IProjectMDB pdb;//pdb打开当前目录中GC文件夹中的mdb文件，例如D:\工作\0725_莲岳路建筑工程项目\规划\GC\项目信息.mdb
 	TCHAR cwlayer[200] = {0};
-	_stprintf(layer, _T("%s"), m_gnq._layer);
-	_stprintf(cwlayer, _T("%s"), m_cw._layer);
-	for(int idx = 0; idx < len; ++idx)				//分层平面图
+	_stprintf(layer, _T("%s"), m_gnq._layer);//将功能区图层赋值给layer
+	_stprintf(cwlayer, _T("%s"), m_cw._layer);//将车位图层赋值给cwlayer
+	for(int idx = 0; idx < len; ++idx)//遍历每个分层平面图
 	{
-		AcDbObjectId id = objects.at(idx);
+		AcDbObjectId id = objects.at(idx);//获得一个分层平面图的id号
 		AcGePoint2dArray node; AcDbObjectIdArray ids, IdArr;
-		GetPlList(aname(id), node);
-		ssFromNodes(ids, node, 1, 1.0, 0, layer);								//获取功能区
-		GetEntExtent(aname(id), pmin, pmax);
-		ZoomWindow(pmin, pmax);
-		double jzmj = 0.0, jrmj = 0.0;
-		getWaiBanQiangArea(id, jzmj, jrmj);
+		GetPlList(aname(id), node);//获得分层平面图的所有节点
+		ssFromNodes(ids, node, 1, 1.0, 0, layer);//获得分层平面图中的所有功能区的id集合
+		GetEntExtent(aname(id), pmin, pmax);//范围线左下角坐标、范围线右上角坐标
+		ZoomWindow(pmin, pmax);//最大化分层平面图
+		double jzmj = 0.0, jrmj = 0.0;//建筑面积jzmj、计容面积jrmj
+		getWaiBanQiangArea(id, jzmj, jrmj);//计算分层平面中的外半墙建筑面积jzmj和外半墙计容面积jrmj
 		TCHAR ldh[255] = {0}, lch[255] = {0};
-		ReadXdata(aname(id), _T("楼栋号"), 0, ldh);
-		ReadXdata(aname(id), _T("楼层号"), 0, lch);
-		CString LCH(lch); int pos = LCH.Find(_T(" "));
-		if(pos != -1) _stprintf(lch, _T("%s"), LCH.Mid(0, pos));
-		MStr filter; filter[_T("楼栋号")] = ldh;
+		ReadXdata(aname(id), _T("楼栋号"), 0, ldh);//读取分层平面的楼栋号（这栋楼的名字，例如湖里高新技术园、1#（1号楼））
+		ReadXdata(aname(id), _T("楼层号"), 0, lch);//读取分层平面的楼层号（具体楼层号，例如"7;9"，指7、9层楼，"7 9"，指7、8、9层）
+		CString LCH(lch); int pos = LCH.Find(_T(" "));//找到楼层号中的空格位置
+		if(pos != -1) _stprintf(lch, _T("%s"), LCH.Mid(0, pos));//楼层号中的空格左侧的内容为起始楼层号，如果是连续楼层，则为单一数字，如果是间断楼层，则为类似于7;9的形式
+		MStr filter; filter[_T("楼栋号")] = ldh;//在filter中创建“楼栋号”属性，并赋值为ldh
 		filter[_T("起始层名")] = lch; CString temp;
-		MStr info = pdb.getCXXTableInfo(filter); ads_point loc;
+		MStr info = pdb.getCXXTableInfo(filter);//根据楼栋号和起始层名找到CXX表中的分层平面信息行，并赋值给info
+		ads_point loc;
 		if(_ttoi(lch) > 0)
-			temp.Format(_T("层高%sm，计容系数1.00"), info[_T("实测层高")]);
+			temp.Format(_T("层高%sm，计容系数1.00"), info[_T("实测层高")]);//地上层，计容系数为1.00
 		else
-			temp.Format(_T("层高%sm，计容系数0.00"), info[_T("实测层高")]);
-		addFunctionAnnotion(ids, temp, jzmj, loc); AcDbObjectIdArray cws;
+			temp.Format(_T("层高%sm，计容系数0.00"), info[_T("实测层高")]);//地下层，计容系数为0.00
+		addFunctionAnnotion(ids, temp, jzmj, loc);
+		AcDbObjectIdArray cws;
 		if(!ssFromNodes(cws, node, 1, 1.0, _T("*POLYLINE"), cwlayer)) continue;
 		int cwCount = 0; map<CString, int> carmp;
 		for(int indx = 0; indx < cws.length(); ++indx)
@@ -5520,8 +5522,18 @@ void XMJGHouse::singleEdgeNote()
 	AcGePoint2dArray nodes;
 	nodes.append(asPnt2d(spt));
 	nodes.append(asPnt2d(ept));
-	// 判断左右，-1为左，1为右，0为线上
+	// 判断点击方向，起点到终点指向为从左向右、从下向上，-1为右，1为左，0为线上
 	int nSide = PointSideOfPolyline(asPnt2d(sidept), nodes);
+	if (spt[X] > ept[X] || spt[Y] > ept[Y])nSide = 0 - nSide;
+	aligned->setDimtxtdirection(false);
+	switch (nSide)
+	{
+	case -1:aligned->setDimtad(1); break;
+	case 0:aligned->setDimtad(0); break;
+	case 1:aligned->setDimtad(4); break;
+	default:;
+	}
+	aligned->setDimgap(0.4*m_Scale);
 	aligned->setDimtxt(m_fwbczj._size); AcDbObjectId id;
 	AcCmColor color; color.setColorIndex(m_fwbczj._color);
 	aligned->setDimclrd(color); aligned->setDimclrt(color);
@@ -5529,7 +5541,7 @@ void XMJGHouse::singleEdgeNote()
 	aligned->setDimsd1(true); aligned->setDimsd2(true);
 	aligned->setDimse1(true); aligned->setDimse2(true);
 	aligned->setDimdec(2); aligned->setDimtih(false);
-	aligned->setDimtad(1); aligned->setLayer(m_fwbczj._layer);
+	aligned->setLayer(m_fwbczj._layer);
 	if(!AppendEntity(aligned, id))
 	{
 		delete aligned;
@@ -5537,10 +5549,6 @@ void XMJGHouse::singleEdgeNote()
 	}
 	//AcGePoint3d txtPt3d = aligned->textPosition();
 	//int txtSide = PointSideOfPolyline(AcGePoint2d(txtPt3d.x, txtPt3d.y), nodes);
-	if(sidept[1] < pos[1])
-	{
-		aligned->setDimtad(4);
-	}
 	aligned->close();	setlayer(aname(id), m_fwbczj._layer);
 	SetTextStyle(id, m_fwbczj._font, 1.0); return;
 	// 
@@ -6306,58 +6314,79 @@ void XMJGHouse::exportRoadZPT()
 	openDwgCommand(pathName);
 }
 
+
 bool XMJGHouse::addFunctionAnnotion(const AcDbObjectIdArray &ids, CString &wbqinfo, double wbqmj, ads_point ptLoc)
 {
 	//ids：分层平面中所有功能区id集合
-	//wbqinfo：地上层"层高:%sm，计容系数"
-	CString info(_T("注：")), strArea; double dzdarea = 0.0, sarea = 0.0;
+	//wbqinfo：储存分层平面中的层高和计容系数信息，地上层是"层高:%sm，计容系数1.00"，地下层是"层高:%sm，计容系数0.00"
+	//wbqmj：分层平面中的外半墙面积
+	//ptLoc：ads_point点
+	CString info(_T("注:\t")), strArea; double dzdarea = 0.0, sarea = 0.0;
+	//info用于记录所有输出信息
 	TCHAR mj[2000] = {0}; TCHAR layer[200] = {0}; MStr Notetext;
-	int len = ids.length(); AcDbObjectIdArray gnqids;
-	gnqids.append(ids); ads_point pos, ranglePoint; _stprintf(layer, _T("%s,%s"), m_gnq._layer, m_cw._layer);
-	if(RTCAN == ads_getpoint(NULL, _T("\n 请选择要标注的位置："), pos)) return false;
-	if(RTNORM != ads_getpoint(pos, _T("请拾取文字显示横向最大边界点："), ranglePoint))return false;
-	double cwArea = 0.0;
-	MSSIds mssids = sortGNQByXData(ids); bool wbqisAnn = false;
-	for(MSSIdsIter sit = mssids.begin(); sit != mssids.end(); ++sit)
+	int len = ids.length();//len用于记录分层平面中功能区个数
+	ads_point pos, ranglePoint; 
+	_stprintf(layer, _T("%s,%s"), m_gnq._layer, m_cw._layer);//layer记录功能区图层和车位图层
+	if(RTCAN == ads_getpoint(NULL, _T("\n请选择要标注的位置："), pos)) return false;//pos表示注记的位置
+	//ranglePoint表示文字横向最大边界点
+	if (RTNORM != ads_getpoint(pos, _T("\n请拾取文字横向显示右侧边界点："), ranglePoint))return false;
+	double cwArea = 0.0;//车位面积
+	MSSIds mssids = sortGNQByXData(ids);
+	//按照XData对功能区进行排序
+	/*
+	功能区XData示例：
+	功能区名称：变配电室；功能区编号：01；
+	功能区简称：；功能区高度：2.5；面积系数：1；
+	计容系数1；梯间名称：；主体高度：1；
+	扣岛：false；ZJHANDLE：337B
+	*/
+	bool wbqisAnn = false;
+	for(MSSIdsIter sit = mssids.begin(); sit != mssids.end(); ++sit)//遍历楼梯间
 	{
-		MSIds msids = sit->second; CString tj = sit->first; double area = 0.0;
+		MSIds msids = sit->second; //梯间内所有功能区及其信息集合
+		CString tj = sit->first;//tj楼梯间
+		double area = 0.0;
 		if(tj.GetLength() != 0)
 		{
-			info.Append(tj);
+			info.Append(tj);//车位可以没有对应梯间名称
 		}
-		for(MSIdsIter it = msids.begin(); it != msids.end(); ++it)
+		for(MSIdsIter it = msids.begin(); it != msids.end(); ++it)//遍历按照层高和计容系数再分类的分层平面
 		{
-			CString sm = it->first, dzdsm;
-			AcDbObjectIdArray gnqs = it->second;
+			CString sm = it->first, dzdsm;//分层平面按照层高和计容系数再分类，sm存储分层平面层高和计容系数
+			AcDbObjectIdArray gnqs = it->second;//sm对应的所有功能区ID集合
 			std::map<CString, double, CmpCstr> gnqmp;
-			for(int idx = 0; idx < gnqs.length(); ++idx)
+			for(int idx = 0; idx < gnqs.length(); ++idx)//遍历功能区
 			{
-				AcDbObjectId id = gnqs.at(idx);
-				AcDbObjectIdArray dzdid;				//岛中岛实体id
-				AcGePoint2dArray nodes;
-				GetPlList(aname(id), nodes);
-				ssFromNodes(dzdid, nodes, 1, 0.5, 0, layer);
-				dzdid.remove(id); FunctionHAH hah;
-				getFunctionArea(id, hah); area = hah.m_jzmj;
-				for(int indx = 0; indx < dzdid.length(); ++indx)
+				AcDbObjectId id = gnqs.at(idx);//将当前功能区指定为序号idx指向功能区
+				AcDbObjectIdArray dzdid;//当前功能区中的岛中岛ID集合
+				AcGePoint2dArray nodes;//储存当前功能区所有节点
+				GetPlList(aname(id), nodes);//获得当前功能区的所有节点
+				ssFromNodes(dzdid, nodes, 1, 0.5, 0, layer);//选择当前功能区中包含的所有功能区和车位
+				dzdid.remove(id);//去除岛中岛ID集合中的当前功能区
+				FunctionHAH hah;//用于存放当前功能区的编号、面积等信息
+				getFunctionArea(id, hah);//获得当前功能区的面积
+				area = hah.m_jzmj;//area用于存放当前功能区的面积
+				for(int indx = 0; indx < dzdid.length(); ++indx)//遍历岛中岛
 				{
-					FunctionHAH hah1;
-					AcDbObjectId dzd = dzdid.at(indx);
-					getFunctionArea(dzd, hah1);
+					FunctionHAH hah1;//用于存放当前岛的编号、面积等信息
+					AcDbObjectId dzd = dzdid.at(indx);//指定当前岛为序号idx指向的岛中岛中的岛
+					getFunctionArea(dzd, hah1);//获得当前岛的面积
 					if(hah1.m_bh.CompareNoCase(_T("车位")) == 0)
-						cwArea += hah1.m_jzmj;
+						cwArea += hah1.m_jzmj;//cwArea用于储存所有车位面积
 					//area -= hah1.m_jzmj;
 				}
-				if(fabs(area) < EPS) continue;
-				gnqmp.insert(std::make_pair(hah.m_bh, area));
+				if(fabs(area) < EPS) continue;//如果当前功能区面积为零，则略去
+				gnqmp.insert(std::make_pair(hah.m_bh, area));//当前功能区编号和面积组成值对插入进gnqmp中
 			}
+			//遍历储存功能区面积的map<CString, double, CmpCstr>
 			for(std::map<CString, double, CmpCstr>::iterator itr = gnqmp.begin(); itr != gnqmp.end(); ++itr)
 			{
-				CString bh = itr->first;
-				area = itr->second;
-				_stprintf(mj, _T("%.3lf"), area);
-				sarea += _tstof(mj); dzdarea += _tstof(mj);
-				_stprintf(mj, _T("%s = %.3lf, "), bh, area);
+				CString bh = itr->first;//储存当前功能区编号
+				area = itr->second;//储存当前功能区面积
+				_stprintf(mj, _T("%.3lf"), area);//格式化当前功能区面积，控制3位小数点
+				sarea += _tstof(mj);//将格式化后的当前功能区面积转为单精度浮点数并加进sarea中
+				dzdarea += _tstof(mj);//将格式化后的当前功能区面积转为单精度浮点数并加进dzdarea中
+				_stprintf(mj, _T("%s = %.3lf, "), bh, area);//格式化当前功能区面积，控制3位小数，mj类似于"01 = 0.001"
 				dzdsm += mj;
 			}
 
@@ -6374,129 +6403,30 @@ bool XMJGHouse::addFunctionAnnotion(const AcDbObjectIdArray &ids, CString &wbqin
 				}
 			}
 			if(sarea == 0.0) continue;
-			strArea.Format(_T("面积合计%.3lf㎡，"), sarea);
+			strArea.Format(_T("面积合计%.3lfm{\\H0.7x;\\S2^;}，"), sarea);//sarea用于存储指定层高和计容系数下的功能区及外半墙面积
 			dzdsm += strArea + sm; sarea = 0.0;
 			info += dzdsm;
-			info += _T("\\P   ");
+			info += _T("\\P\t");
 		}
 	}
 	if(!wbqisAnn && fabs(wbqmj) > 0)
 	{
 		_stprintf(mj, _T("WBQ = %.3lf，%s"), wbqmj, wbqinfo);
-		dzdarea += wbqmj;
+		dzdarea += wbqmj;//dzdarea用于存储分层平面中所有功能区和外半墙的总面积
 		info += mj;
-		info += _T("\\P   ");
+		info += _T("\\P\t");
 	}
+	//{\\H0.7x;\\S2^;}在CAD中会变成{\H0.7x;\S2^;}，表示平方上标，可以将2改为3，表示立方，以此类推
 	if(fabs(cwArea) > EPS)
-		_stprintf(mj, _T("车位面积合计 = %.3lf㎡，总面积合计 = %.3lf㎡"), cwArea, dzdarea + cwArea);
-	else _stprintf(mj, _T("总面积合计 = %.3lf㎡"), dzdarea);
-	info += _T("\\P   ");
+		_stprintf(mj, _T("车位面积合计 = %.3lfm{\\H0.7x;\\S2^;}，总面积合计 = %.3lfm{\\H0.7x;\\S2^;}"), cwArea, dzdarea + cwArea);
+	else _stprintf(mj, _T("总面积合计 = %.3lfm{\\H0.7x;\\S2^;}"), dzdarea);
 	info += mj;
-	AcDbObjectId textid = DrawMText(pos, info, _T(""), m_fcmjzs._size*m_Scale,
+	AcDbObjectId textid = DrawMText(pos, info, _T(""), m_fcmjzs._size*m_Scale, 
 		fabs(ranglePoint[X] - pos[X]), AcDbMText::kTopLeft);
-	setcolor(aname(textid), m_fcmjzs._color); 	setlayer(aname(textid), m_fcmjzs._layer);
+	setcolor(aname(textid), m_fcmjzs._color);//设置实体颜色
+	setlayer(aname(textid), m_fcmjzs._layer);//设置实体图层
 	return true;
 }
-
-// 
-// bool XMJGHouse::addFunctionAnnotion(const AcDbObjectIdArray &ids, CString &wbqinfo, double wbqmj, ads_point ptLoc)
-// {
-// 	CString info(_T("注：")), strArea; double dzdarea = 0.0, sarea = 0.0;
-// 	TCHAR mj[2000] = {0}; TCHAR layer[200] = {0}; MStr Notetext;
-// 	int len = ids.length(); AcDbObjectIdArray gnqids;
-// 	gnqids.append(ids); ads_point pos; _stprintf(layer, _T("%s,%s"), m_gnq._layer, m_cw._layer);
-// 	if(RTCAN == ads_getpoint(NULL, _T("\n 请选择要标注的位置："), pos)) return false;
-// 	AcDbObjectId textid = DrawText(pos, info, _T("ML"), _T(""), m_fcmjzs._size * m_Scale, 0, 1.0);
-// 	setcolor(aname(textid), m_fcmjzs._color); 	setlayer(aname(textid), m_fcmjzs._layer);
-// 	pos[0] += 2; ads_point loc; ads_point_set(pos, loc); double cwArea = 0.0;
-// 	MSSIds mssids = sortGNQByXData(ids); bool wbqisAnn = false;
-// 	for(MSSIdsIter sit = mssids.begin(); sit != mssids.end(); ++sit)
-// 	{
-// 		MSIds msids = sit->second; CString tj = sit->first; double area = 0.0;
-// 		if(tj.GetLength() != 0)
-// 		{
-// 			info.Append(tj);
-// 			//textid = DrawText(loc, tj, _T("ML"), _T(""), m_fcmjzs._size * m_Scale, 0.0, 1.0);
-// 			//setcolor(aname(textid), m_fcmjzs._color); setlayer(aname(textid), m_fcmjzs._layer);
-// 			//loc[X] += 2;
-// 		}
-// 		for(MSIdsIter it = msids.begin(); it != msids.end(); ++it)
-// 		{
-// 			CString sm = it->first, dzdsm;
-// 			AcDbObjectIdArray gnqs = it->second;
-// 			std::map<CString, double, CmpCstr> gnqmp;
-// 			for(int idx = 0; idx < gnqs.length(); ++idx)
-// 			{
-// 				AcDbObjectId id = gnqs.at(idx);
-// 				AcDbObjectIdArray dzdid;				//岛中岛实体id
-// 				AcGePoint2dArray nodes;
-// 				GetPlList(aname(id), nodes);
-// 				ssFromNodes(dzdid, nodes, 1, 0.5, 0, layer);
-// 				dzdid.remove(id); FunctionHAH hah;
-// 				getFunctionArea(id, hah); area = hah.m_jzmj;
-// 				for(int indx = 0; indx < dzdid.length(); ++indx)
-// 				{
-// 					FunctionHAH hah1;
-// 					AcDbObjectId dzd = dzdid.at(indx);
-// 					getFunctionArea(dzd, hah1);
-// 					if(hah1.m_bh.CompareNoCase(_T("车位")) == 0)
-// 						cwArea += hah1.m_jzmj;
-// 					//area -= hah1.m_jzmj;
-// 				}
-// 				if(fabs(area) < EPS) continue;
-// 				gnqmp.insert(std::make_pair(hah.m_bh, area));
-// 			}
-// 			for(std::map<CString, double, CmpCstr>::iterator itr = gnqmp.begin(); itr != gnqmp.end(); ++itr)
-// 			{
-// 				CString bh = itr->first;
-// 				area = itr->second;
-// 				_stprintf(mj, _T("%.3lf"), area);
-// 				sarea += _tstof(mj); dzdarea += _tstof(mj);
-// 				_stprintf(mj, _T("%s = %.3lf, "), bh, area);
-// 				dzdsm += mj;
-// 			}
-// 
-// 			if(!wbqisAnn)
-// 			{
-// 				if(sm.CompareNoCase(wbqinfo) == 0 && fabs(wbqmj) > 0)
-// 				{
-// 					_stprintf(mj, _T("%.3lf"), wbqmj);
-// 					dzdarea += _tstof(mj);
-// 					sarea += _tstof(mj);
-// 					wbqisAnn = true;
-// 					_stprintf(mj, _T("WBQ = %.3lf，"), wbqmj);
-// 					dzdsm += mj;
-// 				}
-// 			}
-// 			if(sarea == 0.0) continue;
-// 			strArea.Format(_T("面积合计%.3lf㎡，"), sarea);
-// 			dzdsm += strArea + sm; sarea = 0.0;
-// 			info.Append(dzdsm); info.Append(_T("\P"));
-// 			textid = DrawText(loc, dzdsm, _T("ML"), _T(""), m_fcmjzs._size * m_Scale, 0.0, 1.0);
-// 			setcolor(aname(textid), m_fcmjzs._color); 	setlayer(aname(textid), m_fcmjzs._layer);
-// 			loc[Y] -= 2 * m_fcmjzs._size * m_Scale; info.Format(_T("%s"), _T(""));
-// 		}
-// 		loc[X] -= 2;
-// 	}
-// 	if(!wbqisAnn && fabs(wbqmj) > 0)
-// 	{
-// 		_stprintf(mj, _T("WBQ = %.3lf，%s"), wbqmj, wbqinfo);
-// 		loc[X] += 2; dzdarea += wbqmj;
-// 		info.Append(mj); info.Append(_T("\P"));
-// 		textid = DrawText(loc, mj, _T("ML"), _T(""), m_fcmjzs._size * m_Scale, 0.0, 1.0);
-// 		loc[Y] -= 2 * m_fcmjzs._size * m_Scale;
-// 		setcolor(aname(textid), m_fcmjzs._color); 	setlayer(aname(textid), m_fcmjzs._layer);
-// 	}
-// 	else
-// 		loc[X] += 2;
-// 	if(fabs(cwArea) > EPS)
-// 		_stprintf(mj, _T("车位面积合计 = %.3lf㎡，总面积合计 = %.3lf㎡"), cwArea, dzdarea + cwArea);
-// 	else _stprintf(mj, _T("总面积合计 = %.3lf㎡"), dzdarea);
-// 	info.Append(mj); info.Append(_T("\P")); wbqinfo.Format(_T("%s"), info);
-// 	textid = DrawText(loc, mj, _T("ML"), _T(""), m_fcmjzs._size * m_Scale, 0.0, 1.0);
-// 	setcolor(aname(textid), m_fcmjzs._color); 	setlayer(aname(textid), m_fcmjzs._layer);
-// 	loc[Y] -= 2 * m_fcmjzs._size * m_Scale; ads_point_set(loc, ptLoc); return true;
-// }
 
 AcDbObjectIdArray XMJGHouse::getFunctionAreaIds(const AcDbObjectId &id)
 {
@@ -8064,7 +7994,7 @@ bool checkGongNengQuIntersect(const AcDbObjectId &fid, const AcDbObjectId &iid)
 
 void XMJGHouse::readFunctionInfo(const AcDbObjectIdArray &ids, AcDbObjectIdArray &idArr)
 {
-	int row = 1; ads_point insert; int count = ids.length();
+	int row = 1; ads_point insert,ranglePoint; int count = ids.length();
 	if(count <= 10)
 		row = count;
 	else
@@ -8073,36 +8003,45 @@ void XMJGHouse::readFunctionInfo(const AcDbObjectIdArray &ids, AcDbObjectIdArray
 		if(RTCAN == ads_getint(_T("请输入一行注记面积个数<10>："), &row)) return;
 	}
 	if(RTNORM != ads_getpoint(NULL, _T("\n 请选择要插入的位置："), insert)) return;
-	int col = (count + row - 1) / row; col = col == 0 ? 1 : col;
+	if (RTNORM != ads_getpoint(insert, _T("\n 请拾取文字显示横向最大边界点："), ranglePoint))return;
+	TCHAR info[255] = { 0 };
 	typedef map<CString, CString, CmpCstr> CWMap;
-	CString line, per; TCHAR info[255] = {0}; //MStr areanote;
-	map<CString, CWMap> note; CString code;
-	double area = 0.0, xs = 0.0; TCHAR layer[255] = {0};
-	for(int idx = 0; idx < count; ++idx)
+	CWMap note; CString code;
+	double area = 0.0, xs = 0.0; TCHAR layer[255] = { 0 };
+	for (int idx = 0; idx < count; ++idx)
 	{
 		AcDbObjectId fid = ids.at(idx);
 		ReadXdata(aname(fid), _T("扣岛"), 0, info);
-		if(0 == _tcsicmp(info, _T("true"))) continue;
+		if (0 == _tcsicmp(info, _T("true"))) continue;
 		GetEntArea(aname(fid), area);
 		AcGePoint2dArray node;
 		GetPlList(aname(fid), node);
 		AcDbObjectIdArray gnqids;
 		ssFromNodes(gnqids, node, 1, 0.0);
 		gnqids.remove(fid);
-		for(int indx = 0; indx < gnqids.length(); ++indx)
+		//补充函数：删除gnqids中的拓扑关系中的岛
+		for (int indx = 0; indx < gnqids.length(); ++indx)
 		{
 			AcDbObjectId gnqid = gnqids.at(indx);
 			GetEntLayer(gnqid, layer);
-			if(m_gnq._layer.CompareNoCase(layer) != 0
+			if (m_gnq._layer.CompareNoCase(layer) != 0
 				&& m_cw._layer.CompareNoCase(layer) != 0) continue;
-			ReadXdata(aname(gnqid), _T("PR"), 0, info);
-			if(_tcscmp(info, _T("2")) != 0) continue;
+			if (m_cw._layer.CompareNoCase(layer) == 0)
+			{
+				ReadXdata(aname(gnqid), _T("PR"), 0, info);
+				if (_tcscmp(info, _T("1")) != 0) continue;
+			}
+			if (m_gnq._layer.CompareNoCase(layer) == 0)
+			{
+				ReadXdata(aname(gnqid), _T("扣岛"), 0, info);
+				if (0 == _tcsicmp(info, _T("false")))continue;
+			}
 			double subarea = 0.0;
 			GetEntArea(aname(gnqid), subarea);
 			area -= subarea;
 		}
 		GetEntLayer(fid, layer);
-		if(m_gnq._layer.CompareNoCase(layer) == 0)
+		if (m_gnq._layer.CompareNoCase(layer) == 0)
 		{
 			ReadXdata(aname(fid), _T("面积系数"), STRING_TYPE, info);
 			xs = _tstof(info); area *= xs;
@@ -8110,71 +8049,41 @@ void XMJGHouse::readFunctionInfo(const AcDbObjectIdArray &ids, AcDbObjectIdArray
 			code = info;
 			ReadXdata(aname(fid), _T("功能区编号"), 0, info);
 			code += info;
-			ReadXdata(aname(fid), _T("梯间名称"), 0, info);
-			if(note.find(info) == note.end())
-				note[info] = CWMap();
 		}
-		else if(m_cw._layer.CompareNoCase(layer) == 0)
+		else if (m_cw._layer.CompareNoCase(layer) == 0)
 		{
 			ReadXdata(aname(fid), _T("PR"), 0, info);
-			if(_tcscmp(info, _T("2")) != 0) area = 0;
+			if (_tcscmp(info, _T("2")) != 0) area = 0;
 			else
 			{
 				ReadXdata(aname(fid), _T("CWBH"), STRING_TYPE, info);
 				code.Format(_T("%s"), info);
-				_stprintf(info, _T("%s"), _T(""));
 			}
 		}
-		if(area < EPS) continue;
-		CString temp(code); int idx = 1;
-		while(note[info].find(temp) != note[info].end())
-			temp.Format(_T("%s_%d"), code, idx++);
+		if (area < EPS) continue;
+		CString temp(code); int idxx = 1;
+		while (note.find(temp) != note.end())
+			temp.Format(_T("%s_%d"), code, idxx++);
 		code = temp;
-		note[info][code].Format(_T("%.3lf"), area);
+		note[code].Format(_T("%.3lf"), area);
 	}
-	map<CString, CWMap>::iterator it = note.begin();
-	ads_point pos; ads_point_set(insert, pos);
-	for(int idx = 0; it != note.end(); ++it, idx++)
+	CString text;
+	int index = 0;
+	for (CWMap::iterator ait = note.begin(); ait != note.end(); ++ait)
 	{
-		insert[0] = pos[0]; CString name = it->first, text;
-		AcDbObjectId tid; CWMap areanotes = it->second;
-		if(name.GetLength() != 0)
+		if (index > row - 1 && index%row == 0)
 		{
-			text += name + _T("：");
-			tid = DrawText(insert, text, _T("ML"), _T(""), m_mjzj._size * m_Scale);
-			setlayer(aname(tid), m_mjzj._layer); setcolor(aname(tid), m_mjzj._color);
-			AddXdata(aname(tid), _T("ZJLX"), 0, _T("GNQMJZJ"));		//功能区面积注记
-			SetTextStyle(tid, _T("黑体"), 1.0);
+			text += _T("\\P");
 		}
-		insert[X] += getTextWidthFactor(tid) * text.GetLength();
-		double offset = insert[X]; int index = 0;
-		for(CWMap::iterator ait = areanotes.begin(); ait != areanotes.end(); ++ait, index++)
-		{
-			if(index != 0 && (index % row) == 0)
-			{
-				insert[Y] -= m_mjzj._size;
-				insert[X] = offset;
-			}
-			text.Format(_T("%-4s= %-7s"), ait->first, ait->second);
-			tid = DrawText(insert, text, _T("ML"), _T(""), m_mjzj._size * m_Scale);
-			AddXdata(aname(tid), _T("ZJLX"), 0, _T("GNQMJZJ"));		//功能区面积注记
-			setlayer(aname(tid), m_mjzj._layer); setcolor(aname(tid), m_mjzj._color);
-			SetTextStyle(tid, _T("黑体"), 1.0);
-			double off = (text.GetLength() + 1) * m_mjzj._size * m_Scale; insert[X] += off / 4 * 3;
-		}
-		insert[Y] -= m_mjzj._size; continue;
-		if(idx != 0 && idx % row == 0)
-		{
-			AcDbObjectId ent = DrawText(insert, line, _T("ML"), _T(""), m_mjzj._size * m_Scale, 0.0, 1.0);
-			AddXdata(aname(ent), _T("ZJLX"), 0, _T("GNQMJZJ"));		//功能区面积注记
-			setlayer(aname(ent), m_mjzj._layer); setcolor(aname(ent), m_mjzj._color);
-			AddXdata(aname(ent), _T("ZJLX"), 0, _T("GNQMJZJ"));		//功能区面积注记
-			insert[Y] -= (m_mjzj._size + 1.0) * m_Scale; line.Format(_T("%s"), _T("")); idArr.append(ent);
-		}
+		CString temp;
+		temp.Format(_T("%-4s= %-7s    "), ait->first, ait->second);
+		text += temp;
+		index++;
 	}
-	AcDbObjectId ent1 = DrawText(insert, line, _T("ML"), _T(""), m_mjzj._size * m_Scale, 0.0, 1.0);
-	setlayer(aname(ent1), m_mjzj._layer); setcolor(aname(ent1), m_mjzj._color);
-	AddXdata(aname(ent1), _T("ZJLX"), 0, _T("GNQMJZJ"));		//功能区面积注记
+	AcDbObjectId tid = DrawMText(insert, text, _T("黑体"), m_mjzj._size*m_Scale, 
+		fabs(ranglePoint[X] - insert[X]), AcDbMText::kTopLeft);
+	setlayer(aname(tid), m_mjzj._layer); setcolor(aname(tid), m_mjzj._color);
+	AddXdata(aname(tid), _T("ZJLX"), 0, _T("GNQMJZJ"));		//功能区面积注记
 }
 
 void XMJGHouse::drawFunctionFrame(AcDbObjectId &ids, AcDbObjectIdArray &IdArr)
@@ -8374,26 +8283,26 @@ void XMJGHouse::getWaiBanQiangArea(const AcDbObjectId &id, double &jzmj, double 
 	IDataBaseOper oper;	TextProperty wqx, nqx;
 	wqx = oper.readTextPropertyTable(_T("建筑外墙线"));
 	nqx = oper.readTextPropertyTable(_T("建筑内墙线"));
-	SelectFilter sf1(8, nqx._layer), sf2(8, wqx._layer), sf3(RTDXF0, _T("*POLYLINE"));
-	AcGePoint2dArray node; GetPlList(aname(id), node);
+	//SelectFilter sf1(8, nqx._layer), sf2(8, wqx._layer), sf3(RTDXF0, _T("*POLYLINE"));//没有使用，建议删除
+	AcGePoint2dArray node; GetPlList(aname(id), node);//获得id标识的多段线的所有节点
 	AcDbObjectIdArray wids, nids; double warea = 0.0, narea = 0.0;
 	TCHAR layer[255] = {0}; _stprintf(layer, _T("%s"), wqx._layer);
-	if(!ssFromNodes(wids, node, 1, 1.0, _T("*POLYLINE"), layer)) return;
+	if(!ssFromNodes(wids, node, 1, 1.0, _T("*POLYLINE"), layer)) return;//选择id标识的多段线内的所有外墙线
 	_stprintf(layer, _T("%s"), nqx._layer);
-	if(!ssFromNodes(nids, node, 1, 1.0, _T("*POLYLINE"), layer)) return;
-	for(int idx = 0; idx < wids.length(); ++idx)
+	if(!ssFromNodes(nids, node, 1, 1.0, _T("*POLYLINE"), layer)) return;//选择id标识的多段线内的所有内墙线
+	for(int idx = 0; idx < wids.length(); ++idx)//计算所有外墙所围面积之和
 	{
 		double area = 0;
 		GetEntArea(aname(wids[idx]), area);
 		warea += area;
 	}
-	for(int idx = 0; idx < nids.length(); ++idx)
+	for(int idx = 0; idx < nids.length(); ++idx)//计算所有内墙所围面积之和
 	{
 		double area = 0.0;
 		GetEntArea(aname(nids[idx]), area);
 		narea += area;
 	}
-	jzmj += (warea - narea); jrmj += (warea - narea);
+	jzmj += (warea - narea); jrmj += (warea - narea);//问题：为什么传入两个变量引用却赋值一样
 }
 
 bool XMJGHouse::addFuncion2Layer(const FunctionHAH &func, LayerHAH &layer)
@@ -8570,7 +8479,7 @@ int XMJGHouse::createChangeAreaDWG(const CString &pathname, double angle, const 
 		_stprintf(buildLayer, _T("%s    %s"), binfo, layerName);
 		if(RTCAN == ads_getpoint(NULL, _T("\n请拾取幢号以及层次注记的位置："), pos)) return 0;
 		AcDbObjectId tid = DrawText(pos, buildLayer, _T("C"), _T(""), 0.7, 0.0, 1.0);
-		SetTextStyle(tid, _T("黑体"), 1.0); setlayer(aname(id), _T("变更注释"));
+		SetTextStyle(tid, _T("黑体"), 1.0); setlayer(aname(tid), _T("变更注释"));
 		objs.append(tid); TCHAR pathName[255] = {0};
 		_stprintf(pathName, _T("%s变更图%d.dwg"), path, ++count);
 		exportdwg.setSavePath(pathName);
@@ -8761,7 +8670,7 @@ void XMJGHouse::boundaryNote()
 	if(RTCAN == ads_getint(_T("\n 请输入注记的位置<1>外部、<2>内部：[1]"), &notelocal)) return;
 	while(true)
 	{
-		ads_getpoint(NULL, _T("\n请指定内部一点"), pos);
+		if (RTNORM != ads_getpoint(NULL, _T("\n请指定内部一点"), pos))return;
 		ads_entlast(last);
 		ads_command(RTSTR, _T("-BOUNDARY"), RTSTR, _T("A"), RTSTR, _T("I"), RTSTR, _T("N"), RTSTR, _T(""), RTSTR, _T(""), RTPOINT, pos, RTSTR, _T(""), RTNONE);
 		ads_entlast(ent); if(ads_name_equal(last, ent)) return;
@@ -8782,8 +8691,8 @@ void XMJGHouse::boundaryNote()
 			dist_str.Format(_T("%.2f"), dist);
 			double angle = ads_angle(apoint(pte), apoint(pts));
 			ads_point insertpt;
-			ads_polar(apoint(midpt), angle + angle_reverse * PI, m_fwbczj._size * m_Scale, insertpt);
-			if(angle > PI / 2 && angle < 3 * PI / 2)
+			ads_polar(apoint(midpt), angle + angle_reverse * PI, 0.4 * m_Scale, insertpt);
+			if(angle > PI / 2 + EPS && angle < 3 * PI / 2 + EPS)
 				angle -= PI;
 			AcDbObjectId textID = DrawText(insertpt, dist_str, _T("MC"), _T("20000"), m_fwbczj._size * m_Scale, angle, 1.0);
 			setcolor(aname(textID), m_fwbczj._color);
