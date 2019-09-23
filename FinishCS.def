@@ -1,0 +1,7 @@
+
+LIBRARY      "FinishCS"
+
+EXPORTS
+	acrxEntryPoint		PRIVATE
+	acrxGetApiVersion	PRIVATE
+

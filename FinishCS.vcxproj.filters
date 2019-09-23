@@ -1,0 +1,544 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <ClCompile Include="DocData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FinishCS.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="FinishCSCommands.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="rxdebug.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="StdAfx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Global.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Dialogs.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Tukuang.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="wordRpt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="excelRpt.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Encryption.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SLegendOpe.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="EntitysCheck.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MatchFialogsEx.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ListItemsMdb.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SDimensionOpe.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ExtractTextdlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\90\sense_virbox\NFCH_antiHACK_rsa_verify.c">
+      <Filter>加壳</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\90\sense_virbox\randomx86.c">
+      <Filter>加壳</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\90\sense_virbox\x86_cpu_clock.c">
+      <Filter>加壳</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportMdbInfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ExportReportFactory.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XMJGReadData.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XMJGDialog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintAndInsertJPG.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XMJGTool.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PipeTree.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SWipeOut.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\80\AutoB\AutoDiv.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\80\AutoB\AutoGrid.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\80\AutoB\AutoInfo.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\80\AutoB\geometric2d.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\80\AutoB\AutoLoop.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\AdoCommand.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\AdoConnection.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\AdoRecordSet.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\EditListCtrl.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\EntitysInfo.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\EntitysOpe.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\EntOper.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\FilePathOperater.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\excel9.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\FilesOpe.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\GeoOper.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\PathDialog.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\OperateWord.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\operateexcel.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SaveBlocks.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SBlockOpe.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SBreakBlock.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\Selection_String.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SFilter.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SmartTable.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SNodesOpe.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\STrimPoly.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\StringsOpe.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\TinyExcel.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\TinyWord.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\Tukuang_Common.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\XRecordOperate.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ContructsOperate.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DatabaseOperManager.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\80\AutoB\RegionFitPt.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\90\cassdog.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\workdef.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\tinyxmlparser.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="AutoRebuild.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\90\cassDogX.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\90\cassGlobal.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\CassInfo.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\indexini.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\Layers.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\ListCtrlCombo.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\listctrledit.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\msword.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SConnectLines.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\SReadConfig.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\tinystr.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\tinyxml.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\tinyxmlerror.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PrintPDF.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="carinfo.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="setentitypropery.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C3DOperator.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="ZipFunction.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="zip.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="unzip.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="Pdf2Png.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MuPDFConvert.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="JoinTriangles.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LichengExcel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="LichengFromZdline.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XMJGPipeLine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="PipeSection.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\AttributeDef.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="importdata.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="epsdef.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XMJGMunicipal.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="SYPSampleJJG.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\public\StdioFileEx.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawUpPlanning.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="lineparallel.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="NewSetLayerInfoDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QualityCheckReport.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="QualityCheckSubReport.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="XMJGReConfigurationDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\90\EntitySelector.cpp">
+      <Filter>库文件</Filter>
+    </ClCompile>
+    <ClCompile Include="BridgePropertyDlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="InfomationOfProjectRangeLine.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="MoveJig.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="domainoperate.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="DrawDomainDialog.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+    <ClCompile Include="heightpropertysettingdlg.cpp">
+      <Filter>源文件</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="AdskDMgr.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DocData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Resource.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="rxdebug.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="StdAfx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="StdArx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Global.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="structs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="macros.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Dialogs.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Tukuang.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="wordRpt.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="excelRpt.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ContructsOperate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="Encryption.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SLegendOpe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="EntitysCheck.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MatchFialogsEx.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ListItemsMdb.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SDimensionOpe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="ExtractTextdlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\public\FilePathOperater.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XMJGReadData.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XMJGDialog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\public\XRecordOperate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PrintAndInsertJPG.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="C:\public\StringsOpe.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XMJGMacro.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XMJGTool.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="zip.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="unzip.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SWipeOut.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="PipeTree.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DatabaseOperManager.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BuildDataBase.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="carinfo.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="setentitypropery.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MuPDFConvert.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="pdf2png.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XMJGPipeLine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="importdata.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="epsdef.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="SYPSampleJJG.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawUpPlanning.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="lineparallel.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="NewSetLayerInfoDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QualityCheckReport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="QualityCheckSubReport.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="XMJGReConfigurationDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="BridgePropertyDlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="InfomationOfProjectRangeLine.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="MoveJig.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="domainoperate.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="DrawDomainDialog.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+    <ClInclude Include="heightpropertysettingdlg.h">
+      <Filter>头文件</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="ObjectARX.prj">
+      <Filter>资源文件</Filter>
+    </CustomBuild>
+    <CustomBuild Include="FinishCS.def">
+      <Filter>资源文件</Filter>
+    </CustomBuild>
+    <CustomBuild Include="res\FinishCS.rc2">
+      <Filter>资源文件</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="头文件">
+      <UniqueIdentifier>{55a51056-2a68-4eb5-b57f-40763fa32e5b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="源文件">
+      <UniqueIdentifier>{adeddf2a-08b8-40f1-85c4-e51b4e93ec15}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="加壳">
+      <UniqueIdentifier>{d19242b0-931d-424b-9f53-ddaa1290f464}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="库文件">
+      <UniqueIdentifier>{70af4a6b-b5a9-42fb-b655-aeb7d60807fd}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="资源文件">
+      <UniqueIdentifier>{3f09d35e-67ff-4a85-95b4-df9c360c55b2}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="FinishCS.rc">
+      <Filter>资源文件</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
