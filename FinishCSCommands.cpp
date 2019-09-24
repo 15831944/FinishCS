@@ -1760,6 +1760,12 @@ void FCSBuildHatch()
 	house.buildHatch();
 }
 
+void FCSCalculateJZZDMJ()//计算建筑占地面积
+{
+	SEEKDOG(); HOUSE(house);
+	house.calculateJZZDMJ();
+}
+
 void FCSDrawRotateLine()
 {
 	SEEKDOG(); HOUSE(house);

@@ -205,6 +205,7 @@ void FCSExportBuildHeightAndAreaInfo();
 void FCSExportChangeAreaDWG();
 void FCSExportZPT();
 void FCSBuildHatch();
+void FCSCalculateJZZDMJ();//计算建筑占地面积
 void FCSDrawRotateLine();
 void FCSChangeLayerInfo();
 void FCSDrawAreaRange();

@@ -4667,17 +4667,71 @@ void XMJGHouse::FunctionDefine()
 
 void XMJGHouse::buildHatch()
 {
-	SelectFilter f(8, _T("建筑物轮廓")); AcDbObjectId buildid;
-	if(false == SelectEntity(buildid, f, _T(""))) return;
-	acutPrintf(_T("\n 请选择需要扣除的权属线:")); ads_name ssName;
-	ads_ssget(_T(""), NULL, NULL, NULL, ssName); AcDbObjectIdArray unfill;
-	SSToIdArr(ssName, unfill);
-	AREAINFO info; info.IdFlood = buildid; info.idSafe.append(unfill);
-	AcDbObjectId region = C3DOperator::CreateRingRegion(buildid, unfill);
-	AcDbObjectId hatchid = C3DOperator::HatchObject(info, 31, _T("SOLID"));
-	setcolor(aname(region), 31);
-	SetLineWidth(aname(buildid), 0.6 * m_Scale); ads_name ent; acdbGetAdsName(ent, buildid);
-	acedCommand(RTSTR, _T("draworder"), RTENAME, ent, RTSTR, _T(""), RTSTR, _T("B"), 0);
+	SelectFilter f(8, _T("建筑物轮廓")); AcDbObjectId buildid;//创建图层筛选条件
+	if(false == SelectEntity(buildid, f, _T(""))) return;//选择图层为“建筑物轮廓”的实体
+	acutPrintf(_T("\n 请选择需要扣除的权属线:"));
+	ads_name ssName;//用于存储需要扣除的权属线集合ads_name
+	ads_ssget(_T(""), NULL, NULL, NULL, ssName);//选择需要扣除的权属线
+	AcDbObjectIdArray unfill;//用于存储需要扣除的权属线集合ID集
+	SSToIdArr(ssName, unfill);//将选择的权属线集合ads_name转化为实体ID集合
+	AREAINFO info; 
+	info.IdFlood = buildid;//将建筑物轮廓线ID赋值给info中的水淹区ID
+	info.idSafe.append(unfill);//将水淹区中的岛的ID集加入到info中的安全区ID集
+	AcDbObjectId region = C3DOperator::CreateRingRegion(buildid, unfill);//创建环状面域
+	AcDbObjectId hatchid = C3DOperator::HatchObject(info, 31, _T("SOLID"));//根据水淹区和岛集创建填充区域
+	setcolor(aname(region), 31);//将面状区域颜色更改为浅棕色
+	SetLineWidth(aname(buildid), 0.6 * m_Scale);//设置建筑物轮廓线宽度
+	ads_name ent;//储存建筑轮廓线的ads_name
+	acdbGetAdsName(ent, buildid);//获得建筑物轮廓线的ads_name
+	acedCommand(RTSTR, _T("draworder"), RTENAME, ent, RTSTR, _T(""), RTSTR, _T("B"), 0);//将建筑物轮廓线置于显示最底部
+}
+
+void XMJGHouse::calculateJZZDMJ()
+{
+	SelectFilter sfJZWLK(8, _T("建筑物轮廓")), sfPl(5020, _T("*POLYLINE"));//创建筛选填充区域的选择条件
+	AcDbObjectIdArray JZWLKArr;//存储所有的建筑物轮廓线
+	if (false == SelectEntitys(JZWLKArr, sfJZWLK, sfPl, _T("X")))return;//选择范围内所有建筑物轮廓线
+	int JZWLKLen = JZWLKArr.length();//计算范围内的建筑物轮廓线数目
+	if (JZWLKLen == 0)
+	{
+		acutPrintf(_T("\n当前DWG不存在建筑物轮廓线"));
+		return;
+	}
+	double JZZDMJ = 0.0;
+	IProjectMDB pdb;
+	for (int i = 0; i < JZWLKLen; i++)
+	{
+		AcDbObjectId id = JZWLKArr.at(i);
+		AcGePoint2dArray nodes;
+		GetPlList(aname(id), nodes);
+		AcDbObjectIdArray hatchArr;//存储建筑物轮廓线中的填充区域
+		ssFromNodes(hatchArr, nodes, 2, 0.1, _T("HATCH"));//选择建筑物轮廓线中的所有填充区域
+		int hatchCount = hatchArr.length();//计算建筑物轮廓线中的填充区域个数
+		if (hatchCount == 0)continue;//如果不存在填充区域，则不计算
+		for (int j = 0; j < hatchCount; j++)//遍历建筑物轮廓线中的填充区域
+		{
+			AcDbHatch *pHatch;
+			if (Acad::eOk != acdbOpenObject(pHatch, hatchArr.at(i), AcDb::kForRead))return;//以只读方式打开填充区域
+			double hatchArea = 0.0;//暂存填充区域面积
+			if (Acad::eOk != pHatch->getArea(hatchArea))return;//获得填充区域面积
+			pHatch->close();//关闭填充区域
+			JZZDMJ += hatchArea;//累加填充区域面积
+		}
+		TCHAR ldh[255] = { 0 };//暂存建筑物楼栋号
+		ReadXdata(aname(id), _T("楼栋号"), 0, ldh);//读取建筑物轮廓线的XData中的建筑物楼栋号
+		MStr filter;//用于搜索符合条件的记录
+		filter[_T("楼栋号")] = ldh;//使用楼栋号作为搜索条件
+		MStr setContent;//暂存更新记录内容
+		setContent[_T("建筑占地面积")].Format(_T("%.3lf"), JZZDMJ);
+		if (pdb.getRecordCount(_T("DXX"), filter) == 0)//判断楼栋信息表中是否存在该建筑物记录
+		{//理论上一定存在该建筑物记录
+			acutPrintf(_T("\n出现异常操作错误，不存在该建筑物记录！"));
+		}
+		else
+		{
+			pdb.setDXXTalbeInfo(filter, setContent);//更新建筑占地面积
+		}
+	}
 }
 
 void XMJGHouse::drawRotateLine()
@@ -6386,10 +6440,10 @@ bool XMJGHouse::addFunctionAnnotion(const AcDbObjectIdArray &ids, CString &wbqin
 				_stprintf(mj, _T("%.3lf"), area);//格式化当前功能区面积，控制3位小数点
 				sarea += _tstof(mj);//将格式化后的当前功能区面积转为单精度浮点数并加进sarea中
 				dzdarea += _tstof(mj);//将格式化后的当前功能区面积转为单精度浮点数并加进dzdarea中
-				_stprintf(mj, _T("%s = %.3lf, "), bh, area);//格式化当前功能区面积，控制3位小数，mj类似于"01 = 0.001"
+				_stprintf(mj, _T("%s、"), bh, area);//格式化当前功能区面积，控制3位小数，mj类似于"01 = 0.001"
 				dzdsm += mj;
 			}
-
+			dzdsm = dzdsm.Mid(0, dzdsm.GetLength() - 1);//去除尾部英文逗号
 			if(!wbqisAnn)
 			{
 				if(sm.CompareNoCase(wbqinfo) == 0 && fabs(wbqmj) > 0)
@@ -8237,20 +8291,22 @@ void XMJGHouse::removeSubFunction(const AcDbObjectId &id, double &jzArea, double
 	}
 }
 
-bool XMJGHouse::getFunctionArea(AcDbObjectId &id, FunctionHAH &hah)
-{
-	TCHAR layer[20] = {0};
-	GetEntLayer(id, layer);
-	if(m_gnq._layer.CompareNoCase(layer) == 0)
+bool XMJGHouse::getFunctionArea(AcDbObjectId &id, FunctionHAH &hah)//计算功能区、车位面积
+{//功能区ID号
+	TCHAR layer[20] = { 0 };//存储功能区图层
+	GetEntLayer(id, layer);//获得功能区图层
+	if(m_gnq._layer.CompareNoCase(layer) == 0)//判断是否是功能区
 	{
-		TCHAR value[255] = {0};
-		double area = 0.0, jzarea = 0.0, jrarea = 0.0;
-		GetEntArea(aname(id), area);
+		TCHAR value[255] = { 0 };
+		double area = 0.0;
+		double jzarea = 0.0;//建筑面积
+		double jrarea = 0.0;//计容面积
+		GetEntArea(aname(id), area);//计算功能区或车位边界线所围面积
 		jzarea = jrarea = area;
-		ReadXdata(aname(id), _T("计容系数"), 0, value);
-		hah.m_jrxs = (float)_tstof(value);
+		ReadXdata(aname(id), _T("计容系数"), 0, value);//读取功能区或车位的计容系数
+		hah.m_jrxs = (float)_tstof(value);//将计容系数赋值给hah.m_jrxs
 		//hah.m_jrmj = area * _tstof(value);
-		ReadXdata(aname(id), _T("面积系数"), 0, value);
+		ReadXdata(aname(id), _T("面积系数"), 0, value);//读取功能区或车位的面积系数
 		//hah.m_jzmj = area * _tstof(value);
 		removeSubFunction(id, jzarea, jrarea);
 		hah.m_jzmj = jzarea * _tstof(value);
@@ -8262,7 +8318,7 @@ bool XMJGHouse::getFunctionArea(AcDbObjectId &id, FunctionHAH &hah)
 		ReadXdata(aname(id), _T("功能区编号"), 0, value);
 		hah.m_bh += value;
 	}
-	else if(m_cw._layer.CompareNoCase(layer) == 0)
+	else if(m_cw._layer.CompareNoCase(layer) == 0)//判断是否是车位
 	{
 		ReadXdata(aname(id), _T("PR"), 0, layer);
 		if(_tcscmp(layer, _T("2")) == 0)

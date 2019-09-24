@@ -1770,6 +1770,12 @@ public:
 	 */
 	void buildHatch();
 
+	/* @接口 计算建筑占地面积
+	 * @作者 何鹏鹏
+	 * @时间 2019年9月24日
+	 */
+	void calculateJZZDMJ();
+
 	/* @接口
 	 * @返回 读取成功，返回值为true，否则返回值为false
 	 * @作者 杨发荷

@@ -299,7 +299,7 @@ void InitApplication()
 	AddCommand(_T("FCS"), _T("FCSExportBuildHeightAndAreaInfo"), _T("F7-21"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET | ACRX_CMD_SESSION, FCSExportBuildHeightAndAreaInfo);//输出高度和面积信息
 	AddCommand(_T("FCS"), _T("FCSExportChangeAreaDWG"), _T("F7-22"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSExportChangeAreaDWG);									//输出变更图
 	AddCommand(_T("FCS"), _T("FCSExportZPT"), _T("F7-23"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSExportZPT);														//输出总平图
-	AddCommand(_T("FCS"), _T("FCSBuildHatch"), _T("F7-24"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSBuildHatch);														//房屋填充
+	AddCommand(_T("FCS"), _T("FCSBuildHatch"), _T("F7-24"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSBuildHatch);	//房屋填充
 	AddCommand(_T("FCS"), _T("FCSDrawRotateLine"), _T("F7-25"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSDrawRotateLine);												//绘制旋转线
 	AddCommand(_T("FCS"), _T("FCSChangeLayerInfo"), _T("F7-26"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSChangeLayerInfo);											 
 	AddCommand(_T("FCS"), _T("FCSDrawAreaRange"), _T("F7-27"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSDrawAreaRange);												//绘制面积范围线
@@ -343,7 +343,8 @@ void InitApplication()
 	AddCommand(_T("FCS"), _T("FCSTiQingMianJi"), _T("F7-65"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSTiQingMianJi);													//修改建筑物名称	//2018.2.1
 	AddCommand(_T("FCS"), _T("FCSDistAnnotate"), _T("F7-66"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSDistAnnotate);													//修改建筑物名称	//2018.2.1
 	AddCommand(_T("FCS"), _T("FCSCheckGongNengQu"), _T("F7-67"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSCheckGongNengQu);											//修改建筑物名称	//2018.8.20
-	AddCommand(_T("FCS"), _T("FCSDefineGongNengQu"), _T("F7-68"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSDefineGongNengQu);											//修改建筑物名称	//2018.8.20
+	AddCommand(_T("FCS"), _T("FCSDefineGongNengQu"), _T("F7-68"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSDefineGongNengQu);	
+	AddCommand(_T("FCS"), _T("FCSCalculateJZZDMJ"), _T("F7-69"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSCalculateJZZDMJ);//计算建筑占地面积//修改建筑物名称	//2018.8.20
 	AddCommand(_T("FCS"), _T("FCSNewCreaetFCPMT"), _T("FCSNewCreaetFCPMT"), ACRX_CMD_USEPICKSET | ACRX_CMD_TRANSPARENT, FCSNewCreaetFCPMT);
 	AddCommand(_T("FCS"), _T("FCSNewSetLayerInfo"), _T("FCSNewSetLayerInfo"), ACRX_CMD_USEPICKSET | ACRX_CMD_TRANSPARENT, FCSNewSetLayerInfo);
 	AddCommand(_T("FCS"), _T("FCSNewQualityCheck"), _T("FCSNewQualityCheck"), ACRX_CMD_USEPICKSET | ACRX_CMD_TRANSPARENT, FCSNewQualityCheck);
