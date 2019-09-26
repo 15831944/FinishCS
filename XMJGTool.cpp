@@ -4114,7 +4114,7 @@ void XMJGAssist::DrawTuKuang(const AcGePoint2d &lb, const AcGePoint2d &rt, bool 
 	TCHAR info[20] = {0};
 	_stprintf(info, _T("%s"), _T("（图廓坐标均以 “Km”为单位）"));
 	id = DrawText(pos, info, _T("BL"), _T(""), 2.5 * m_Scale, 0.0, 1.0);
-	if(!flag) return; pos[Y] -= 3.5;
+	if(flag) return; pos[Y] -= 3.5;
 	DrawText(pos, _T("注：此图为样图"), _T("BL"), _T(""), 2.5 * m_Scale, 0.0, 1.0);
 	SetTextStyle(id, _T("黑体"), 1.0); setlayer(aname(id), _T("图框"));
 }
