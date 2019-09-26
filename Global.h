@@ -1697,7 +1697,7 @@ void sortObjectByXDataInt(AcDbObjectIdArray &, const VStr &, bool del = true);
  * @作者 杨发荷
  * @时间 2017年11月16号
  */
-MSSIds sortGNQByXData(const AcDbObjectIdArray &);
+MSIds sortGNQByXData(const AcDbObjectIdArray &);//按照层高和计容系数进行功能区分类
 
 /* @接口
  * @作者 杨发荷

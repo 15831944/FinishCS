@@ -277,7 +277,7 @@ enum DrawDir
 typedef struct tagXMJGFunctionHAH
 {
 	float m_cg;
-	CString m_bh;
+	CString m_bh;//包括功能区简称和编号
 	double m_jzmj;		//建筑面积
 	double m_jrmj;		//计容面积
 	double m_jrxs;

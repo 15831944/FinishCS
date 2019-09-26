@@ -4055,26 +4055,55 @@ void FCSModifyProjectInfo()
 
 void FCSCreateCarPosition()
 {
-	IDataBaseOper oper; double m_Scale = 500;
-	read1(m_Scale); m_Scale /= 1000; int iCtype = 1;
-	TextProperty m_cw = oper.readTextPropery(_T("建筑竣工车位"));
-	TextProperty m_cwzj = oper.readTextPropery(_T("建筑竣工车位注记"), true, true);
-	SelectFilter sf(8, _T("车位"));	AcDbObjectIdArray ids; TCHAR pr[4] = {0};
-	if(!SelectEntitys(ids, sf, _T("X"))) return;
-	if(RTCAN == ads_getint(_T("[1]:单一产权；[2]:多产权"), &iCtype)) return;
-	_stprintf(pr, _T("%d"), iCtype);
-	TCHAR szlc[20] = {0}; int szlctype = 1; _stprintf(szlc, _T("%s"), _T("地上"));
-	if(RTCAN == ads_getint(_T("\n车位属于：[1]地上、[2]地下"), &szlctype)) return;
-	if(szlctype == 2) _stprintf(szlc, _T("%s"), _T("地下"));
-	acedSetStatusBarProgressMeter(_T("正在构建车位请稍后："), 0, ids.length());
+	IDataBaseOper oper;
+	double m_Scale = 500;//缩放系数
+	read1(m_Scale);//读取比例尺分母
+	m_Scale /= 1000;//计算缩放系数
+	int iCtype = 1;//产权识别码，默认单产权
+	TextProperty m_cw = oper.readTextPropery(_T("建筑竣工车位"));//读取建筑竣工车位相关属性
+	TextProperty m_dxcwzj = oper.readTextPropery(_T("建筑竣工地下车位注记"), true, true);//读取建筑竣工地下车位注记相关属性
+	TextProperty m_dscwzj = oper.readTextPropery(_T("建筑竣工地上车位注记"), true, true);//读取建筑竣工地上车位注记相关属性
+	TextProperty m_dxcwbh = oper.readTextPropery(_T("建筑竣工地下车位编号"), true, true);//读取建筑竣工地下车位编号相关属性
+	TextProperty m_dscwbh = oper.readTextPropery(_T("建筑竣工地上车位编号"), true, true);//读取建筑竣工地上车位编号相关属性
+	SelectFilter sf(8, _T("车位"));//“车位”图层筛选条件
+	SelectFilter sfpl(RTDXF0, _T("*POLYLINE"));//线型筛选条件
+	AcDbObjectIdArray ids;
+	TCHAR pr[4] = { 0 };//产权识别码
+	if (!SelectEntitys(ids, sf, sfpl, _T("X"))) return;//选择当前DWG文件中所有“车位”图层中的实体
+	do
+	{
+		int es = ads_getint(_T("[1]:单一产权；[2]:多产权<1>"), &iCtype);//用户输入指定数字
+		if (es == RTCAN) return;//如果用户取消输入，直接返回
+		if (es != RTNORM)
+		{
+			acutPrintf(_T("\n输入异常，请重新输入！"));
+			iCtype = 0;
+		}
+	} while (iCtype != 1 && iCtype != 2);//用户如果输入非指定数字需要重新输入
+	_stprintf(pr, _T("%d"), iCtype);//将整型产权识别码转化为Unicode字符
+	TCHAR szlc[20] = { 0 };//用于存储地上、地下属性信息
+	int szlctype = 1;//地上、地下车位识别码
+	_stprintf(szlc, _T("%s"), _T("地上"));
+	do
+	{
+		int es = ads_getint(_T("\n车位属于：[1]地上、[2]地下<1>"), &szlctype);
+		if (es == RTCAN)return;
+		if (es != RTNORM) 
+		{
+			acutPrintf(_T("\n输入异常，请重新输入！"));
+			szlctype = 0;
+		}
+	} while (szlctype != 1 && szlctype != 2);
+	if (szlctype == 2) _stprintf(szlc, _T("%s"), _T("地下"));//如果识别码为2，赋值为“地下”
+	acedSetStatusBarProgressMeter(_T("正在构建车位请稍后："), 0, ids.length());//显示构建车位进度条
 	for(int idx = 0; idx < ids.length(); ++idx)
 	{
-		acedSetStatusBarProgressMeterPos(idx);
-		AcDbObjectId id = ids[idx];
+		acedSetStatusBarProgressMeterPos(idx);//设置构建进度
+		AcDbObjectId id = ids[idx];//设置当前车位ID号
 		AcDbObjectIdArray tids = getInnerObjects(id);
 		for(int indx = 0; indx < tids.length(); ++indx)
 		{
-			TCHAR info[25] = {0};
+			TCHAR info[25] = { 0 };
 			AcDbObjectId cid = tids[indx];
 			if(!GetEntLayer(cid, info)) continue;
 			if(_tcscmp(info, _T("车位编号")) == 0)
@@ -4083,23 +4112,51 @@ void FCSCreateCarPosition()
 				AddXdata(aname(id), _T("CWBH"), 0, info);
 				CString handle = GetHandleByObject(cid);
 				AddXdata(aname(id), _T("CWBHJB"), 0, handle);
+				if (_tcscmp(szlc, _T("地上")) == 0)
+				{
+					setlayer(aname(cid), m_dscwbh._layer);
+					setcolor(aname(cid), m_dscwbh._color);
+					SetTextStyle(cid, m_dscwbh._font);
+					modifyTextSize();
+				}
+				else
+				{
+					setlayer(aname(cid), m_dxcwbh._layer);
+					setcolor(aname(cid), m_dxcwbh._color);
+					SetTextStyle(cid, m_dxcwbh._font);
+					modifyTextSize();
+				}
 			}
 			else if(_tcscmp(info, _T("车位注记")) == 0)
 			{
+				GetEntText(aname(cid), info);
+				AddXdata(aname(id), _T("CWZJ"), 0, info);
 				CString handle = GetHandleByObject(cid);
 				AddXdata(aname(id), _T("CWZJJB"), 0, handle);
+				if (_tcscmp(szlc, _T("地上")) == 0)
+				{
+					setlayer(aname(cid), m_dscwzj._layer);
+					setcolor(aname(cid), m_dscwzj._color);
+					SetTextStyle(cid, m_dscwzj._font);
+				}
+				else
+				{
+					setlayer(aname(cid), m_dxcwzj._layer);
+					setcolor(aname(cid), m_dxcwzj._color);
+					SetTextStyle(cid, m_dxcwzj._font);
+				}
 			}
 			else continue;
-			setlayer(aname(cid), m_cwzj._layer);
-			setcolor(aname(cid), m_cwzj._color);
-			SetTextStyle(cid, m_cwzj._font);
 		}
 		AddXdata(aname(id), _T("CWLX"), 0, _T("标准车位"));
 		AddXdata(aname(id), _T("CWSM"), 1, _T("1"));
 		AddXdata(aname(id), _T("SZLC"), 0, szlc);
 		setlayer(aname(id), m_cw._layer);
-		setcolor(aname(id), m_cw._color);
-		AddXdata(aname(id), _T("PR"), 0, pr);
+		if (_tcscmp(szlc, _T("地上")) == 0)
+			setcolor(aname(id), m_cw._color);
+		else
+			setcolor(aname(id), m_dxcwbh._color);
+		AddXdata(aname(id), _T("PR"), 0, pr);//添加车位产权信息
 	}
 	acedRestoreStatusBar();
 }

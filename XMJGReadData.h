@@ -2576,11 +2576,18 @@ private:
 	bool combineChangeAreaDWG(int, const CString &);
 
 	/* @接口 标注功能区信息
-	 * @参数 AcDbObjectId 标注的实体id
+	 * @参数 AcDbObjectId 分层平面ID号
 	 * @作者 杨发荷
 	 * @时间 2017年10月25日
 	 */
-	bool addFunctionAnnotion(const AcDbObjectIdArray &, CString &, double, ads_point);
+	bool addFunctionAnnotion(const AcDbObjectId &, CString &);
+
+	/* @接口 标注功能区信息
+	 * @参数 AcDbObjectId 分层平面ID号
+	 * @作者 何鹏鹏
+	 * @时间 2019年9月25日
+	 */
+	bool addCWAnnotion(const AcDbObjectId &, CString &);
 
 	/* @接口 根据分层范围线获取里面所有的功能区
 	 * @参数 AcDbObjectId 分层平面实体id

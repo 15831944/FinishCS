@@ -3766,7 +3766,7 @@ XMJGHouse::XMJGHouse()
 	m_bg = oper.readTextPropery(_T("½¨Öş¿¢¹¤±ä¸ü"));								//±ä¸ü¿ò¿ò
 	m_bgzj = oper.readTextPropery(_T("½¨Öş¿¢¹¤±ä¸ü×¢¼Ç"), true);					//±ä¸ü+±àºÅ
 	m_hxjd = oper.readTextPropery(_T("½¨Öş¿¢¹¤ºìÏß½Úµã×¢¼Ç"), true);				//ºìÏß½Úµã
-	m_fcmjzs = oper.readTextPropery(_T("½¨Öş¿¢¹¤·Ö²ãÃæ»ı×¢ÊÍ"), true);
+	m_fcmjzs = oper.readTextPropery(_T("½¨Öş¿¢¹¤·Ö²ãÃæ»ı×¢ÊÍ"), true, true);
 	m_bgxxbz = oper.readTextPropery(_T("½¨Öş¿¢¹¤±ä¸üĞÅÏ¢±ê×¢"), true, true);		//Í¼¿ò×óÏÂ½Ç
 	m_dgzzbz = oper.readTextPropery(_T("¿¢¹¤µ¥¸ö×ø±ê±ê×¢"), true);
 	m_hxzbbz = oper.readTextPropery(_T("¿¢¹¤ºìÏß×ø±ê±ê×¢"), true);
@@ -3793,6 +3793,7 @@ XMJGHouse::XMJGHouse()
 	oper.readCommonTable(_T("½¨Öş¿¢¹¤·Ö²ãÆ½ÃæÃæ»ı×¢¼Ç´óĞ¡"), m_mjzj._size);
 	oper.readCommonTable(_T("½¨Öş¿¢¹¤·Ö²ãÆ½ÃæÃæ»ı×¢¼ÇÑÕÉ«"), m_mjzj._color);
 	oper.readCommonTable(_T("½¨Öş¿¢¹¤·Ö²ãÆ½ÃæÃæ»ı×¢¼ÇÍ¼²ã"), m_mjzj._layer);
+	oper.readCommonTable(_T("½¨Öş¿¢¹¤·Ö²ãÆ½ÃæÃæ»ı×¢¼Ç×ÖÌå"), m_mjzj._font);
 	oper.readCommonTable(_T("½¨Öş¿¢¹¤Á¢ÃæÍ¼¸ß¶È×¢¼Ç´óĞ¡"), m_lmtgdzj._size);
 	oper.readCommonTable(_T("½¨Öş¿¢¹¤Á¢ÃæÍ¼¸ß¶È×¢¼ÇÑÕÉ«"), m_lmtgdzj._color);
 	oper.readCommonTable(_T("½¨Öş¿¢¹¤Á¢ÃæÍ¼¸ß¶È×¢¼ÇÍ¼²ã"), m_lmtgdzj._layer);
@@ -4419,65 +4420,67 @@ void XMJGHouse::SetExportHouseDocInfo()
 
 void XMJGHouse::ExportHouseDoc()
 {
-	CString name = GetCurrentDwgName();
-	if(name.Find(_T("ÏîÄ¿Í¼ĞÎ.dwg")) == -1)
+	CString name = GetCurrentDwgName();//»ñµÃµ±Ç°µÄDWGÎÄ¼şÃû
+	if(name.Find(_T("ÏîÄ¿Í¼ĞÎ.dwg")) == -1)//ÅĞ¶Ïµ±Ç°DWGÊÇ·ñÎªÏîÄ¿Í¼ĞÎÎÄ¼ş
 	{
 		MessageBox(GetForegroundWindow(), _T("ÇëÔÚÏîÄ¿Í¼ĞÎÉÏÊä³ö×Ü±¨¸æ"), _T("´íÎóĞÅÏ¢"), MB_OK);
 		return;
 	}
+
+	IProjectMDB pdb; MStr record; AcDbObjectIdArray hxids;
+	SelectFilter sf1(8, _T("ºìÏß")), sf2(RTDXF0, _T("*POLYLINE"));//´´½¨Í¼²ãºÍÊµÌåÀàĞÍµÄÑ¡ÔñÌõ¼ş
+	SelectEntitys(hxids, sf1, sf2, _T("X"));//Ñ¡Ôñµ±Ç°DWGÖĞÍ¼²ãÎª¡°ºìÏß¡±µÄËùÓĞ¶à¶ÎÏß
+	if (hxids.length() == 0)
+		record[_T("Êµ²â½¨ÖşÓÃµØÃæ»ı")].Format(_T("/"));
+	else if (hxids.length() == 1)
 	{
-		IProjectMDB pdb; MStr record; AcDbObjectIdArray hxids;
-		SelectFilter sf1(8, _T("ºìÏß")), sf2(RTDXF0, _T("*POLYLINE"));
-		SelectEntitys(hxids, sf1, sf2, _T("X"));
-		if(hxids.length() == 0)
-			record[_T("Êµ²â½¨ÖşÓÃµØÃæ»ı")].Format(_T("/"));
-		else if(hxids.length() == 1)
-		{
-			AcDbEntity *pEnt = NULL;
-			acdbOpenAcDbEntity(pEnt, hxids.first(), AcDb::kForRead);
-			AcDbPolyline *pLine = (AcDbPolyline *)pEnt;
-			bool flag = Adesk::kTrue == pLine->isClosed(); pEnt->close();
-			if(!flag)
-				record[_T("Êµ²â½¨ÖşÓÃµØÃæ»ı")] = _T("ºìÏßÄÚ¾Ö²¿ÓÃµØ£¬ÔİÎŞ·¨½ç¶¨");
-			else
-			{
-				double area = 0.0; GetEntArea(aname(hxids.first()), area);
-				record[_T("Êµ²â½¨ÖşÓÃµØÃæ»ı")].Format(_T("%.2lf©O"), area);
-			}
-		}
+		AcDbEntity *pEnt = NULL;
+		acdbOpenAcDbEntity(pEnt, hxids.first(), AcDb::kForRead);
+		AcDbPolyline *pLine = (AcDbPolyline *)pEnt;
+		pEnt->close();
+		if (Adesk::kFalse == pLine->isClosed())
+			record[_T("Êµ²â½¨ÖşÓÃµØÃæ»ı")] = _T("ºìÏßÄÚ¾Ö²¿ÓÃµØ£¬ÔİÎŞ·¨½ç¶¨");
 		else
 		{
-			acutPrintf(_T("\Çë¼ì²éÍ¼ÃæÊÇ·ñ´æÔÚ¶àÌõÏîÄ¿ºìÏß"));
-			return;
+			double area = 0.0; GetEntArea(aname(hxids.first()), area);
+			record[_T("Êµ²â½¨ÖşÓÃµØÃæ»ı")].Format(_T("%.2lf©O"), area);
 		}
-		pdb.setMJXXTableInfo(record);
 	}
+	else
+	{
+		acutPrintf(_T("\nÇë¼ì²éÍ¼ÃæÊÇ·ñ´æÔÚ¶àÌõÏîÄ¿ºìÏß"));
+		return;
+	}
+	pdb.setMJXXTableInfo(record);//²åÈë»ò¸üĞÂMJXX±íÖĞµÄ¹Ø¼ü×Ö¡°Êµ²â½¨ÖşÓÃµØÃæ»ı¡±¶ÔÓ¦µÄÊôĞÔÖµ
 	XMJGAssist assist;
-	CString savePath = assist.getExportFilePath();
+	CString savePath = assist.getExportFilePath();//»ñµÃxmjg.mdbÖĞµÄXMJGPathÖĞµÄµ±Ç°Ä¿Â¼ÊôĞÔÖµ
 	SmartTable::Word word; TCHAR path[255] = {0};
-	if(RTNORM != ads_findfile(_T("¿¢¹¤ÑéÊÕ±¨¸æÊé.docx"), path))
+	if(RTNORM != ads_findfile(_T("¿¢¹¤ÑéÊÕ±¨¸æÊé.docx"), path))//ÔÚËÑË÷Â·¾¶ÖĞÑ°ÕÒ¸ÃÎÄ¼şµÄÎÄ¼şÈ«Ãû
 	{
 		MessageBox(GetForegroundWindow(), _T("ÎŞ·¨ÕÒµ½Ä£°åÎÄ¼ş[¿¢¹¤ÑéÊÕ±¨¸æÊé.docx]"), _T("´íÎóĞÅÏ¢"), MB_OK);
 		return;
 	}
+
 	char filepath[1024] = {0}; TcharToChar(path, filepath);
 	word.setEncoding(SmartTable::Encoding_GBK);
-	int ret = word.loadWord(filepath);
-
+	if (word.loadWord(filepath) == 2)
 	{
-		TCHAR xmjgMDB[255] = {0}; VMStr records;
-		ads_findfile(_T("xmjg.mdb"), xmjgMDB);
-		CDatabaseOperManager dbManager;
-		dbManager.initialConnect(xmjgMDB);
-		dbManager.ReadDataBase_all(_T("JGFieldTable"), records);
-		for(int indx = 0; indx < records.size(); ++indx)
-		{
-			MStr record = records[indx];
-			CString title = record[_T("±êÌâ")];
-			CString field = record[_T("×Ö¶Î")];
-			m_fieldTitle[field] = title;
-			m_isReplace[title] = 0;
-		}
+		acutPrintf(_T("\nÄ£°åÎÄ¼ş[¿¢¹¤ÑéÊÕ±¨¸æÊé.docx]´ò¿ªÊ§°Ü£¡"));
+		return;
+	}
+
+	TCHAR xmjgMDB[255] = { 0 }; VMStr records;
+	ads_findfile(_T("xmjg.mdb"), xmjgMDB);
+	CDatabaseOperManager dbManager;
+	dbManager.initialConnect(xmjgMDB);
+	dbManager.ReadDataBase_all(_T("JGFieldTable"), records);
+	for (int indx = 0; indx < records.size(); ++indx)
+	{
+		MStr record = records[indx];
+		CString title = record[_T("±êÌâ")];
+		CString field = record[_T("×Ö¶Î")];
+		m_fieldTitle[field] = title;
+		m_isReplace[title] = 0;
 	}
 
 	replaceWordField(word);			//Ìæ»»ÕÕÆ¬
@@ -4688,7 +4691,7 @@ void XMJGHouse::buildHatch()
 
 void XMJGHouse::calculateJZZDMJ()
 {
-	SelectFilter sfJZWLK(8, _T("½¨ÖşÎïÂÖÀª")), sfPl(5020, _T("*POLYLINE"));//´´½¨É¸Ñ¡Ìî³äÇøÓòµÄÑ¡ÔñÌõ¼ş
+	SelectFilter sfJZWLK(8, _T("½¨ÖşÎïÂÖÀª")), sfPl(RTDXF0, _T("*POLYLINE"));//´´½¨É¸Ñ¡Ìî³äÇøÓòµÄÑ¡ÔñÌõ¼ş
 	AcDbObjectIdArray JZWLKArr;//´æ´¢ËùÓĞµÄ½¨ÖşÎïÂÖÀªÏß
 	if (false == SelectEntitys(JZWLKArr, sfJZWLK, sfPl, _T("X")))return;//Ñ¡Ôñ·¶Î§ÄÚËùÓĞ½¨ÖşÎïÂÖÀªÏß
 	int JZWLKLen = JZWLKArr.length();//¼ÆËã·¶Î§ÄÚµÄ½¨ÖşÎïÂÖÀªÏßÊıÄ¿
@@ -4697,10 +4700,10 @@ void XMJGHouse::calculateJZZDMJ()
 		acutPrintf(_T("\nµ±Ç°DWG²»´æÔÚ½¨ÖşÎïÂÖÀªÏß"));
 		return;
 	}
-	double JZZDMJ = 0.0;
 	IProjectMDB pdb;
 	for (int i = 0; i < JZWLKLen; i++)
 	{
+		double JZZDMJ = 0.0;//
 		AcDbObjectId id = JZWLKArr.at(i);
 		AcGePoint2dArray nodes;
 		GetPlList(aname(id), nodes);
@@ -4711,7 +4714,7 @@ void XMJGHouse::calculateJZZDMJ()
 		for (int j = 0; j < hatchCount; j++)//±éÀú½¨ÖşÎïÂÖÀªÏßÖĞµÄÌî³äÇøÓò
 		{
 			AcDbHatch *pHatch;
-			if (Acad::eOk != acdbOpenObject(pHatch, hatchArr.at(i), AcDb::kForRead))return;//ÒÔÖ»¶Á·½Ê½´ò¿ªÌî³äÇøÓò
+			if (Acad::eOk != acdbOpenObject(pHatch, hatchArr.at(j), AcDb::kForRead))return;//ÒÔÖ»¶Á·½Ê½´ò¿ªÌî³äÇøÓò
 			double hatchArea = 0.0;//Ôİ´æÌî³äÇøÓòÃæ»ı
 			if (Acad::eOk != pHatch->getArea(hatchArea))return;//»ñµÃÌî³äÇøÓòÃæ»ı
 			pHatch->close();//¹Ø±ÕÌî³äÇøÓò
@@ -4722,14 +4725,15 @@ void XMJGHouse::calculateJZZDMJ()
 		MStr filter;//ÓÃÓÚËÑË÷·ûºÏÌõ¼şµÄ¼ÇÂ¼
 		filter[_T("Â¥¶°ºÅ")] = ldh;//Ê¹ÓÃÂ¥¶°ºÅ×÷ÎªËÑË÷Ìõ¼ş
 		MStr setContent;//Ôİ´æ¸üĞÂ¼ÇÂ¼ÄÚÈİ
-		setContent[_T("½¨ÖşÕ¼µØÃæ»ı")].Format(_T("%.3lf"), JZZDMJ);
+		setContent[_T("½¨ÖşÕ¼µØÃæ»ı")].Format(_T("%.4lf"), JZZDMJ);
 		if (pdb.getRecordCount(_T("DXX"), filter) == 0)//ÅĞ¶ÏÂ¥¶°ĞÅÏ¢±íÖĞÊÇ·ñ´æÔÚ¸Ã½¨ÖşÎï¼ÇÂ¼
 		{//ÀíÂÛÉÏÒ»¶¨´æÔÚ¸Ã½¨ÖşÎï¼ÇÂ¼
-			acutPrintf(_T("\n³öÏÖÒì³£²Ù×÷´íÎó£¬²»´æÔÚ¸Ã½¨ÖşÎï¼ÇÂ¼£¡"));
+			acutPrintf(_T("\n³öÏÖÒì³£²Ù×÷´íÎó£¬²»´æÔÚ½¨ÖşÎï¡°%s¡±%s"), ldh, _T("£¡"));
 		}
 		else
 		{
 			pdb.setDXXTalbeInfo(filter, setContent);//¸üĞÂ½¨ÖşÕ¼µØÃæ»ı
+			acutPrintf(_T("\n½¨ÖşÎï¡°%s¡±%s"), ldh, _T("½¨ÖşÕ¼µØÃæ»ı¼ÆËã³É¹¦£¡"));
 		}
 	}
 }
@@ -4901,70 +4905,30 @@ void XMJGHouse::lineConvertChangeArea()
 
 void XMJGHouse::AddFunctionAnnotion()
 {
-	SelectFilter f1(8, m_fcpm._layer);//´´½¨ÓÃÓÚÉ¸Ñ¡·Ö²ãÆ½ÃæÍâ±ß½çÏßµÄÍ¼²ãÉ¸Ñ¡Ìõ¼ş
-	SelectFilter f2(RTDXF0, _T("*POLYLINE"));//´´½¨ÓÃÓÚÉ¸Ñ¡·Ö²ãÆ½ÃæÍâ±ß½çÏßµÄÏßĞÍÉ¸Ñ¡Ìõ¼ş
-	AcDbObjectIdArray objects, IdArr;
-	if(false == SelectEntitys(objects, f1, f2, _T(""))) return;//É¸Ñ¡ËùÓĞ·Ö²ãÆ½Ãæ£¬½«ËüÃÇµÄidºÅ¸³Öµ¸øobjects
-	int len = objects.length();/*»ñµÃ·Ö²ãÆ½ÃæµÄ¸öÊı*/ ads_point pmin, pmax;
-	TCHAR layer[200] = {0}; IProjectMDB pdb;//pdb´ò¿ªµ±Ç°Ä¿Â¼ÖĞGCÎÄ¼ş¼ĞÖĞµÄmdbÎÄ¼ş£¬ÀıÈçD:\¹¤×÷\0725_Á«ÔÀÂ·½¨Öş¹¤³ÌÏîÄ¿\¹æ»®\GC\ÏîÄ¿ĞÅÏ¢.mdb
-	TCHAR cwlayer[200] = {0};
-	_stprintf(layer, _T("%s"), m_gnq._layer);//½«¹¦ÄÜÇøÍ¼²ã¸³Öµ¸ølayer
-	_stprintf(cwlayer, _T("%s"), m_cw._layer);//½«³µÎ»Í¼²ã¸³Öµ¸øcwlayer
-	for(int idx = 0; idx < len; ++idx)//±éÀúÃ¿¸ö·Ö²ãÆ½ÃæÍ¼
+	SelectFilter flayer(8, m_fcpm._layer);//´´½¨ÓÃÓÚÉ¸Ñ¡·Ö²ãÆ½ÃæÍâ±ß½çÏßµÄÍ¼²ãÉ¸Ñ¡Ìõ¼ş
+	SelectFilter fename(RTDXF0, _T("*POLYLINE"));//´´½¨ÓÃÓÚÉ¸Ñ¡·Ö²ãÆ½ÃæÍâ±ß½çÏßµÄÏßĞÍÉ¸Ñ¡Ìõ¼ş
+	AcDbObjectIdArray fcpmids;
+	if (false == SelectEntitys(fcpmids, flayer, fename, _T(""))) return;//ÊÖ¶¯Ñ¡Ôñ²¢É¸Ñ¡ËùÓĞ·Ö²ãÆ½Ãæ£¬½«ËüÃÇµÄidºÅ¸³Öµ¸øobjects
+	ads_point pInsert;//Ãæ»ı×¢ÊÍ²åÈëÎ»ÖÃ
+	ads_point pRight;//Ãæ»ı×¢ÊÍÏÔÊ¾ÓÒ²à±ß½ç
+	if (RTNORM != ads_getpoint(NULL, _T("\nÇëÊ°È¡ÎÄ×ÖºáÏòÏÔÊ¾×ó²à±ß½çµã£º"), pInsert)) return;//Ê°È¡Ãæ»ı×¢ÊÍ²åÈëÎ»ÖÃ
+	if (RTNORM != ads_getpoint(pInsert, _T("\nÇëÊ°È¡ÎÄ×ÖºáÏòÏÔÊ¾ÓÒ²à±ß½çµã£º"), pRight))return;//Ê°È¡Ãæ»ı×¢ÊÍÏÔÊ¾ÓÒ²à±ß½çÎ»ÖÃ
+	CString outputinfo;//Ãæ»ı×¢ÊÍÎÄ×ÖÄÚÈİ
+	for(int idx = 0; idx < fcpmids.length(); ++idx)//±éÀúÃ¿¸ö·Ö²ãÆ½ÃæÍ¼
 	{
-		AcDbObjectId id = objects.at(idx);//»ñµÃÒ»¸ö·Ö²ãÆ½ÃæÍ¼µÄidºÅ
-		AcGePoint2dArray node; AcDbObjectIdArray ids, IdArr;
-		GetPlList(aname(id), node);//»ñµÃ·Ö²ãÆ½ÃæÍ¼µÄËùÓĞ½Úµã
-		ssFromNodes(ids, node, 1, 1.0, 0, layer);//»ñµÃ·Ö²ãÆ½ÃæÍ¼ÖĞµÄËùÓĞ¹¦ÄÜÇøµÄid¼¯ºÏ
-		GetEntExtent(aname(id), pmin, pmax);//·¶Î§Ïß×óÏÂ½Ç×ø±ê¡¢·¶Î§ÏßÓÒÉÏ½Ç×ø±ê
+		AcDbObjectId fcpmid = fcpmids.at(idx);//»ñµÃÒ»¸ö·Ö²ãÆ½ÃæÍ¼µÄidºÅ
+		ads_point pmin, pmax;//·Ö²ãÆ½Ãæ×óÏÂ½ÇµãºÍÓÒÉÏ½Çµã
+		GetEntExtent(aname(fcpmid), pmin, pmax);//·¶Î§Ïß×óÏÂ½Ç×ø±ê¡¢·¶Î§ÏßÓÒÉÏ½Ç×ø±ê
 		ZoomWindow(pmin, pmax);//×î´ó»¯·Ö²ãÆ½ÃæÍ¼
-		double jzmj = 0.0, jrmj = 0.0;//½¨ÖşÃæ»ıjzmj¡¢¼ÆÈİÃæ»ıjrmj
-		getWaiBanQiangArea(id, jzmj, jrmj);//¼ÆËã·Ö²ãÆ½ÃæÖĞµÄÍâ°ëÇ½½¨ÖşÃæ»ıjzmjºÍÍâ°ëÇ½¼ÆÈİÃæ»ıjrmj
-		TCHAR ldh[255] = {0}, lch[255] = {0};
-		ReadXdata(aname(id), _T("Â¥¶°ºÅ"), 0, ldh);//¶ÁÈ¡·Ö²ãÆ½ÃæµÄÂ¥¶°ºÅ£¨Õâ¶°Â¥µÄÃû×Ö£¬ÀıÈçºşÀï¸ßĞÂ¼¼ÊõÔ°¡¢1#£¨1ºÅÂ¥£©£©
-		ReadXdata(aname(id), _T("Â¥²ãºÅ"), 0, lch);//¶ÁÈ¡·Ö²ãÆ½ÃæµÄÂ¥²ãºÅ£¨¾ßÌåÂ¥²ãºÅ£¬ÀıÈç"7;9"£¬Ö¸7¡¢9²ãÂ¥£¬"7 9"£¬Ö¸7¡¢8¡¢9²ã£©
-		CString LCH(lch); int pos = LCH.Find(_T(" "));//ÕÒµ½Â¥²ãºÅÖĞµÄ¿Õ¸ñÎ»ÖÃ
-		if(pos != -1) _stprintf(lch, _T("%s"), LCH.Mid(0, pos));//Â¥²ãºÅÖĞµÄ¿Õ¸ñ×ó²àµÄÄÚÈİÎªÆğÊ¼Â¥²ãºÅ£¬Èç¹ûÊÇÁ¬ĞøÂ¥²ã£¬ÔòÎªµ¥Ò»Êı×Ö£¬Èç¹ûÊÇ¼ä¶ÏÂ¥²ã£¬ÔòÎªÀàËÆÓÚ7;9µÄĞÎÊ½
-		MStr filter; filter[_T("Â¥¶°ºÅ")] = ldh;//ÔÚfilterÖĞ´´½¨¡°Â¥¶°ºÅ¡±ÊôĞÔ£¬²¢¸³ÖµÎªldh
-		filter[_T("ÆğÊ¼²ãÃû")] = lch; CString temp;
-		MStr info = pdb.getCXXTableInfo(filter);//¸ù¾İÂ¥¶°ºÅºÍÆğÊ¼²ãÃûÕÒµ½CXX±íÖĞµÄ·Ö²ãÆ½ÃæĞÅÏ¢ĞĞ£¬²¢¸³Öµ¸øinfo
-		ads_point loc;
-		if(_ttoi(lch) > 0)
-			temp.Format(_T("²ã¸ß%sm£¬¼ÆÈİÏµÊı1.00"), info[_T("Êµ²â²ã¸ß")]);//µØÉÏ²ã£¬¼ÆÈİÏµÊıÎª1.00
-		else
-			temp.Format(_T("²ã¸ß%sm£¬¼ÆÈİÏµÊı0.00"), info[_T("Êµ²â²ã¸ß")]);//µØÏÂ²ã£¬¼ÆÈİÏµÊıÎª0.00
-		addFunctionAnnotion(ids, temp, jzmj, loc);
-		AcDbObjectIdArray cws;
-		if(!ssFromNodes(cws, node, 1, 1.0, _T("*POLYLINE"), cwlayer)) continue;
-		int cwCount = 0; map<CString, int> carmp;
-		for(int indx = 0; indx < cws.length(); ++indx)
-		{
-			AcDbObjectId cwid = cws[indx]; TCHAR xdata[255] = {0};
-			ReadXdata(aname(cwid), _T("CWSM"), 1, xdata);
-			cwCount += _tstoi(xdata);
-			TCHAR cwlx[255] = {0};
-			ReadXdata(aname(cwid), _T("CWLX"), STRING_TYPE, cwlx);
-			if(carmp.find(cwlx) != carmp.end())
-				carmp[cwlx]++;
-			else
-				carmp.insert(make_pair(cwlx, 1));
-		}
-		//TCHAR text[255] = {0}; _stprintf(text, _T("±¾²ã×Ü¼ÆÍ£³µ²´Î»%d¸ö"), cwCount);
-		CString strText;
-		strText.Format(_T("±¾²ã×Ü¼ÆÍ£³µ²´Î»%d¸ö:"), cwCount);
-		for(map<CString, int>::const_iterator it = carmp.begin(); it != carmp.end(); ++it)
-		{
-			CString t;
-			if(it == carmp.begin())
-				t.Format(_T("£¬ÆäÖĞ%s%d¸ö£¬"), it->first, it->second);
-			else
-				t.Format(_T("%s%d¸ö£¬"), it->first, it->second);
-			strText += t;
-		}
-		if(carmp.size() != 0)
-			strText.Delete(strText.GetLength() - 1, 1);
-		AcDbObjectId cwgsid = DrawText(loc, strText, _T("ML"), _T(""), m_fcmjzs._size * m_Scale, 0.0, 1.0);
-		setlayer(aname(cwgsid), m_fcmjzs._layer);
+		//Êä³ö¹¦ÄÜÇøĞÅÏ¢
+		addFunctionAnnotion(fcpmid, outputinfo);
+		outputinfo += _T("\\P\t");
+		//Êä³ö³µÎ»ĞÅÏ¢
+		addCWAnnotion(fcpmid, outputinfo);
+		AcDbObjectId fcmjzjTxtId = DrawMText(pInsert, outputinfo, m_fcmjzs._font, m_fcmjzs._size*m_Scale,
+			fabs(pRight[X] - pInsert[X]), AcDbMText::kTopLeft);//Êä³öÃæ»ı×¢¼Ç
+		setcolor(aname(fcmjzjTxtId), m_fcmjzs._color);//ÉèÖÃÊµÌåÑÕÉ«
+		setlayer(aname(fcmjzjTxtId), m_fcmjzs._layer);//ÉèÖÃÊµÌåÍ¼²ã
 	}
 }
 
@@ -6369,117 +6333,150 @@ void XMJGHouse::exportRoadZPT()
 }
 
 
-bool XMJGHouse::addFunctionAnnotion(const AcDbObjectIdArray &ids, CString &wbqinfo, double wbqmj, ads_point ptLoc)
+bool XMJGHouse::addFunctionAnnotion(const AcDbObjectId &id, CString &info)
 {
-	//ids£º·Ö²ãÆ½ÃæÖĞËùÓĞ¹¦ÄÜÇøid¼¯ºÏ
-	//wbqinfo£º´¢´æ·Ö²ãÆ½ÃæÖĞµÄ²ã¸ßºÍ¼ÆÈİÏµÊıĞÅÏ¢£¬µØÉÏ²ãÊÇ"²ã¸ß:%sm£¬¼ÆÈİÏµÊı1.00"£¬µØÏÂ²ãÊÇ"²ã¸ß:%sm£¬¼ÆÈİÏµÊı0.00"
-	//wbqmj£º·Ö²ãÆ½ÃæÖĞµÄÍâ°ëÇ½Ãæ»ı
-	//ptLoc£ºads_pointµã
-	CString info(_T("×¢:\t")), strArea; double dzdarea = 0.0, sarea = 0.0;
-	//infoÓÃÓÚ¼ÇÂ¼ËùÓĞÊä³öĞÅÏ¢
-	TCHAR mj[2000] = {0}; TCHAR layer[200] = {0}; MStr Notetext;
-	int len = ids.length();//lenÓÃÓÚ¼ÇÂ¼·Ö²ãÆ½ÃæÖĞ¹¦ÄÜÇø¸öÊı
-	ads_point pos, ranglePoint; 
-	_stprintf(layer, _T("%s,%s"), m_gnq._layer, m_cw._layer);//layer¼ÇÂ¼¹¦ÄÜÇøÍ¼²ãºÍ³µÎ»Í¼²ã
-	if(RTCAN == ads_getpoint(NULL, _T("\nÇëÑ¡ÔñÒª±ê×¢µÄÎ»ÖÃ£º"), pos)) return false;//pos±íÊ¾×¢¼ÇµÄÎ»ÖÃ
-	//ranglePoint±íÊ¾ÎÄ×ÖºáÏò×î´ó±ß½çµã
-	if (RTNORM != ads_getpoint(pos, _T("\nÇëÊ°È¡ÎÄ×ÖºáÏòÏÔÊ¾ÓÒ²à±ß½çµã£º"), ranglePoint))return false;
-	double cwArea = 0.0;//³µÎ»Ãæ»ı
-	MSSIds mssids = sortGNQByXData(ids);
-	//°´ÕÕXData¶Ô¹¦ÄÜÇø½øĞĞÅÅĞò
-	/*
-	¹¦ÄÜÇøXDataÊ¾Àı£º
-	¹¦ÄÜÇøÃû³Æ£º±äÅäµçÊÒ£»¹¦ÄÜÇø±àºÅ£º01£»
-	¹¦ÄÜÇø¼ò³Æ£º£»¹¦ÄÜÇø¸ß¶È£º2.5£»Ãæ»ıÏµÊı£º1£»
-	¼ÆÈİÏµÊı1£»Ìİ¼äÃû³Æ£º£»Ö÷Ìå¸ß¶È£º1£»
-	¿Ûµº£ºfalse£»ZJHANDLE£º337B
-	*/
-	bool wbqisAnn = false;
-	for(MSSIdsIter sit = mssids.begin(); sit != mssids.end(); ++sit)//±éÀúÂ¥Ìİ¼ä
+	//id£º·Ö²ãÆ½ÃæIDºÅ
+	//info£ºÊä³öĞÅÏ¢ÀÛ¼Ó±äÁ¿
+
+	TCHAR ldh[255] = { 0 };//Â¥¶°ºÅ
+	TCHAR lch[255] = { 0 };//ÆğÊ¼Â¥²ãºÅ
+	ReadXdata(aname(id), _T("Â¥¶°ºÅ"), 0, ldh);//¶ÁÈ¡·Ö²ãÆ½ÃæµÄÂ¥¶°ºÅ£¨Õâ¶°Â¥µÄÃû×Ö£¬ÀıÈçºşÀï¸ßĞÂ¼¼ÊõÔ°¡¢1#£¨1ºÅÂ¥£©£©
+	ReadXdata(aname(id), _T("Â¥²ãºÅ"), 0, lch);//¶ÁÈ¡·Ö²ãÆ½ÃæµÄÂ¥²ãºÅ£¨¾ßÌåÂ¥²ãºÅ£¬ÀıÈç"7;9"£¬Ö¸7¡¢9²ãÂ¥£¬"7 9"£¬Ö¸7¡¢8¡¢9²ã£©
+	CString LCH(lch);//½«TCAHR×Ö·û´®×ª»¯ÎªCString£¬±ãÓÚ¶Ô×Ö·û´®½øĞĞ²Ù×÷
+	int cpos = LCH.Find(_T(" "));//ÕÒµ½Â¥²ãºÅÖĞµÄ¿Õ¸ñµÄÎ»ÖÃ£¬¿Õ¸ñ×ó±ßÊÇÆğÊ¼Â¥²ãºÅ£¬ÓÒ±ßÊÇ½áÊøÂ¥²ãºÅ
+	if (cpos != -1) _stprintf(lch, _T("%s"), LCH.Mid(0, cpos));//½ØÈ¡Â¥²ãºÅÖĞµÄÆğÊ¼Â¥²ãºÅ¸³Öµ¸ølch
+	MStr filter;
+	filter[_T("Â¥¶°ºÅ")] = ldh;//ÔÚfilterÖĞ´´½¨¡°Â¥¶°ºÅ¡±ÊôĞÔ£¬²¢¸³ÖµÎªldh
+	filter[_T("ÆğÊ¼²ãÃû")] = lch;//ÔÚfilterÖĞ´´½¨¡°ÆğÊ¼²ãÃû¡±ÊôĞÔ£¬²¢¸³ÖµÎªlch
+	IProjectMDB pdb;
+	MStr record = pdb.getCXXTableInfo(filter);//¸ù¾İÂ¥¶°ºÅºÍÆğÊ¼²ãÃûÕÒµ½CXX±íÖĞµÄ·Ö²ãÆ½ÃæĞÅÏ¢ĞĞ£¬²¢¸³Öµ¸øinfo
+	CString wbqcgjrxs;//µ±Ç°·Ö²ãÆ½ÃæµÄ²ã¸ßºÍ¼ÆÈİÏµÊı
+	if (lch[0] == _T('-'))//Èç¹ûÊÇµØÏÂÂ¥²ãÔò¼ÆÈİÏµÊıÎª1
+		wbqcgjrxs.Format(_T("²ã¸ß%.2lfm£¬¼ÆÈİÏµÊı%.2lf"), _tstof(record[_T("Êµ²â²ã¸ß")]), 0.00);
+	else
+		wbqcgjrxs.Format(_T("²ã¸ß%.2lfm£¬¼ÆÈİÏµÊı%.2lf"), _tstof(record[_T("Êµ²â²ã¸ß")]), 1.00);
+	AcDbObjectIdArray fcpmgnqids;//µ±Ç°·Ö²ãÆ½ÃæÖĞËùÓĞ¹¦ÄÜÇøµÄID¼¯ºÏ
+	AcGePoint2dArray fcpmnodes;//·Ö²ãÆ½Ãæ±ß½çÏßËùÓĞ½Úµã
+	GetPlList(aname(id), fcpmnodes);//»ñµÃ·Ö²ãÆ½ÃæÍ¼µÄËùÓĞ½Úµã
+	TCHAR layer[255] = { 0 };//´æ´¢Í¼²ãÃû³Æ
+	_stprintf(layer, _T("%s"), m_gnq._layer);
+	ssFromNodes(fcpmgnqids, fcpmnodes, 1, 1.0, _T("*POLYLINE"), layer);//»ñµÃ·Ö²ãÆ½ÃæÍ¼ÖĞµÄËùÓĞ¹¦ÄÜÇøµÄid¼¯ºÏ
+	MSIds fcpmgnqmsids = sortGNQByXData(fcpmgnqids);//ÅÅĞòËùÓĞ¹¦ÄÜÇø
+	double dzdarea = 0.0;//ÓÃÓÚÀÛ¼ÓËùÓĞ·Ç¿Ûµº¹¦ÄÜÇøÃæ»ıºÍÍâ°ëÇ½Ãæ»ı
+	double wbqjzmj = 0.0, wbqjrmj = 0.0;//½¨ÖşÃæ»ıwbqjzmj¡¢¼ÆÈİÃæ»ıwbqjrmj
+	getWaiBanQiangArea(id, wbqjzmj, wbqjrmj);//½«Íâ°ëÇ½Ãæ»ı×·¼Óµ½jzmjºÍjrmjÖĞ
+	bool wbqisAnn = fabs(wbqjzmj) == 0 ? true : false;//Ãæ»ıÎª0µÄÍâ°ëÇ½²»Êä³ö
+	info += _T("×¢:\t");
+	for (MSIdsIter it = fcpmgnqmsids.begin(); it != fcpmgnqmsids.end(); ++it)//±éÀú°´ÕÕ²ã¸ßºÍ¼ÆÈİÏµÊı·ÖÀàµÄ¹¦ÄÜÇø
 	{
-		MSIds msids = sit->second; //Ìİ¼äÄÚËùÓĞ¹¦ÄÜÇø¼°ÆäĞÅÏ¢¼¯ºÏ
-		CString tj = sit->first;//tjÂ¥Ìİ¼ä
-		double area = 0.0;
-		if(tj.GetLength() != 0)
+		double sarea = 0.0;//ÀÛ¼ÓÄ³Ò»Ö¸¶¨²ã¸ßºÍ¼ÆÈİÏµÊıÏÂµÄËùÓĞ·Ç¿Ûµº¹¦ÄÜÇøÃæ»ıºÍÍâ°ëÇ½Ãæ»ı£¨Èç¹ûÍâ°ëÇ½²ã¸ßµÈÓÚ¸ÃÀà±ğ²ã¸ß£©
+		AcDbObjectIdArray cjgnqids = it->second;//sm¶ÔÓ¦µÄËùÓĞ¹¦ÄÜÇøID¼¯ºÏ
+		std::map<CString, double, CmpCstr> gnqmp;
+		for (int idx = 0; idx < cjgnqids.length(); ++idx)//±éÀú¹¦ÄÜÇø
 		{
-			info.Append(tj);//³µÎ»¿ÉÒÔÃ»ÓĞ¶ÔÓ¦Ìİ¼äÃû³Æ
+			AcDbObjectId cjgnqid = cjgnqids.at(idx);//½«µ±Ç°¹¦ÄÜÇøÖ¸¶¨ÎªĞòºÅidxÖ¸Ïò¹¦ÄÜÇø
+			TCHAR cjisKouDao[255] = { 0 };
+			ReadXdata(aname(cjgnqid), _T("¿Ûµº"), 0, cjisKouDao);
+			if (_tcscmp(cjisKouDao, _T("true")) == 0)continue;//¿ÛµºÎªÕæµÄ¹¦ÄÜÇø²»Êä³ö
+			FunctionHAH cjhah;//ÓÃÓÚ´æ·Åµ±Ç°¹¦ÄÜÇøµÄ±àºÅ¡¢Ãæ»ıµÈĞÅÏ¢
+			getFunctionArea(cjgnqid, cjhah);//»ñµÃµ±Ç°¹¦ÄÜÇøµÄÃæ»ı
+			if (fabs(cjhah.m_jzmj) < EPS) continue;//Èç¹ûµ±Ç°¹¦ÄÜÇøÃæ»ıÎªÁã£¬ÔòÂÔÈ¥
+			gnqmp.insert(std::make_pair(cjhah.m_bh, cjhah.m_jzmj));//µ±Ç°¹¦ÄÜÇø¼òÂë±àºÅºÍÃæ»ı×é³ÉÖµ¶Ô²åÈë½øgnqmpÖĞ
 		}
-		for(MSIdsIter it = msids.begin(); it != msids.end(); ++it)//±éÀú°´ÕÕ²ã¸ßºÍ¼ÆÈİÏµÊıÔÙ·ÖÀàµÄ·Ö²ãÆ½Ãæ
+		//±éÀú´¢´æ¹¦ÄÜÇøÃæ»ıµÄmap<CString, double, CmpCstr>
+		for (std::map<CString, double, CmpCstr>::iterator itr = gnqmp.begin(); itr != gnqmp.end(); ++itr)
 		{
-			CString sm = it->first, dzdsm;//·Ö²ãÆ½Ãæ°´ÕÕ²ã¸ßºÍ¼ÆÈİÏµÊıÔÙ·ÖÀà£¬sm´æ´¢·Ö²ãÆ½Ãæ²ã¸ßºÍ¼ÆÈİÏµÊı
-			AcDbObjectIdArray gnqs = it->second;//sm¶ÔÓ¦µÄËùÓĞ¹¦ÄÜÇøID¼¯ºÏ
-			std::map<CString, double, CmpCstr> gnqmp;
-			for(int idx = 0; idx < gnqs.length(); ++idx)//±éÀú¹¦ÄÜÇø
-			{
-				AcDbObjectId id = gnqs.at(idx);//½«µ±Ç°¹¦ÄÜÇøÖ¸¶¨ÎªĞòºÅidxÖ¸Ïò¹¦ÄÜÇø
-				AcDbObjectIdArray dzdid;//µ±Ç°¹¦ÄÜÇøÖĞµÄµºÖĞµºID¼¯ºÏ
-				AcGePoint2dArray nodes;//´¢´æµ±Ç°¹¦ÄÜÇøËùÓĞ½Úµã
-				GetPlList(aname(id), nodes);//»ñµÃµ±Ç°¹¦ÄÜÇøµÄËùÓĞ½Úµã
-				ssFromNodes(dzdid, nodes, 1, 0.5, 0, layer);//Ñ¡Ôñµ±Ç°¹¦ÄÜÇøÖĞ°üº¬µÄËùÓĞ¹¦ÄÜÇøºÍ³µÎ»
-				dzdid.remove(id);//È¥³ıµºÖĞµºID¼¯ºÏÖĞµÄµ±Ç°¹¦ÄÜÇø
-				FunctionHAH hah;//ÓÃÓÚ´æ·Åµ±Ç°¹¦ÄÜÇøµÄ±àºÅ¡¢Ãæ»ıµÈĞÅÏ¢
-				getFunctionArea(id, hah);//»ñµÃµ±Ç°¹¦ÄÜÇøµÄÃæ»ı
-				area = hah.m_jzmj;//areaÓÃÓÚ´æ·Åµ±Ç°¹¦ÄÜÇøµÄÃæ»ı
-				for(int indx = 0; indx < dzdid.length(); ++indx)//±éÀúµºÖĞµº
-				{
-					FunctionHAH hah1;//ÓÃÓÚ´æ·Åµ±Ç°µºµÄ±àºÅ¡¢Ãæ»ıµÈĞÅÏ¢
-					AcDbObjectId dzd = dzdid.at(indx);//Ö¸¶¨µ±Ç°µºÎªĞòºÅidxÖ¸ÏòµÄµºÖĞµºÖĞµÄµº
-					getFunctionArea(dzd, hah1);//»ñµÃµ±Ç°µºµÄÃæ»ı
-					if(hah1.m_bh.CompareNoCase(_T("³µÎ»")) == 0)
-						cwArea += hah1.m_jzmj;//cwAreaÓÃÓÚ´¢´æËùÓĞ³µÎ»Ãæ»ı
-					//area -= hah1.m_jzmj;
-				}
-				if(fabs(area) < EPS) continue;//Èç¹ûµ±Ç°¹¦ÄÜÇøÃæ»ıÎªÁã£¬ÔòÂÔÈ¥
-				gnqmp.insert(std::make_pair(hah.m_bh, area));//µ±Ç°¹¦ÄÜÇø±àºÅºÍÃæ»ı×é³ÉÖµ¶Ô²åÈë½øgnqmpÖĞ
-			}
-			//±éÀú´¢´æ¹¦ÄÜÇøÃæ»ıµÄmap<CString, double, CmpCstr>
-			for(std::map<CString, double, CmpCstr>::iterator itr = gnqmp.begin(); itr != gnqmp.end(); ++itr)
-			{
-				CString bh = itr->first;//´¢´æµ±Ç°¹¦ÄÜÇø±àºÅ
-				area = itr->second;//´¢´æµ±Ç°¹¦ÄÜÇøÃæ»ı
-				_stprintf(mj, _T("%.3lf"), area);//¸ñÊ½»¯µ±Ç°¹¦ÄÜÇøÃæ»ı£¬¿ØÖÆ3Î»Ğ¡Êıµã
-				sarea += _tstof(mj);//½«¸ñÊ½»¯ºóµÄµ±Ç°¹¦ÄÜÇøÃæ»ı×ªÎªµ¥¾«¶È¸¡µãÊı²¢¼Ó½øsareaÖĞ
-				dzdarea += _tstof(mj);//½«¸ñÊ½»¯ºóµÄµ±Ç°¹¦ÄÜÇøÃæ»ı×ªÎªµ¥¾«¶È¸¡µãÊı²¢¼Ó½ødzdareaÖĞ
-				_stprintf(mj, _T("%s¡¢"), bh, area);//¸ñÊ½»¯µ±Ç°¹¦ÄÜÇøÃæ»ı£¬¿ØÖÆ3Î»Ğ¡Êı£¬mjÀàËÆÓÚ"01 = 0.001"
-				dzdsm += mj;
-			}
-			dzdsm = dzdsm.Mid(0, dzdsm.GetLength() - 1);//È¥³ıÎ²²¿Ó¢ÎÄ¶ººÅ
-			if(!wbqisAnn)
-			{
-				if(sm.CompareNoCase(wbqinfo) == 0 && fabs(wbqmj) > 0)
-				{
-					_stprintf(mj, _T("%.3lf"), wbqmj);
-					dzdarea += _tstof(mj);
-					sarea += _tstof(mj);
-					wbqisAnn = true;
-					_stprintf(mj, _T("WBQ = %.3lf£¬"), wbqmj);
-					dzdsm += mj;
-				}
-			}
-			if(sarea == 0.0) continue;
-			strArea.Format(_T("Ãæ»ıºÏ¼Æ%.3lfm{\\H0.7x;\\S2^;}£¬"), sarea);//sareaÓÃÓÚ´æ´¢Ö¸¶¨²ã¸ßºÍ¼ÆÈİÏµÊıÏÂµÄ¹¦ÄÜÇø¼°Íâ°ëÇ½Ãæ»ı
-			dzdsm += strArea + sm; sarea = 0.0;
-			info += dzdsm;
-			info += _T("\\P\t");
+			sarea += itr->second;//ÀÛ¼Ó·Ç¿Ûµº¹¦ÄÜÇøÃæ»ı
+			CString mpjmbh = itr->first;//µ±Ç°¹¦ÄÜÇø±àºÅ
+			mpjmbh += _T("¡¢");//ÂŞÁĞËùÓĞ¹¦ÄÜÇø¼òÂë±àºÅ£¬ÒÔÖĞÎÄ¶ÙºÅ·Ö¸ô
+			info += mpjmbh;//½«¹¦ÄÜÇø¼òÂë±àºÅÂŞÁĞÖµ×·¼Óµ½infoÖĞ
 		}
+		if (!wbqisAnn)
+		{
+			if (it->first.CompareNoCase(wbqcgjrxs) == 0)
+			{
+				sarea += wbqjzmj;//ÀÛ¼ÓÍâ°ëÇ½Ãæ»ı
+				info += _T("WBQ¡¢");//½«ÂŞÁĞÖµ×·¼Óµ½infoÖĞ
+				wbqisAnn = true;//±íÊ¾Íâ°ëÇ½Ãæ»ıÒÑ¾­×¢ÊÍ
+			}
+		}
+		info = info.Mid(0, info.GetLength() - _tcslen(_T("¡¢")));//È¥³ıÎ²²¿ÖĞÎÄ¶ÙºÅ
+		if (sarea == 0.0) continue;//Èç¹ûsareaÎªÁã£¬Ôò²»Êä³öµ±Ç°Àà±ğ
+		CString temp;
+		temp.Format(_T("Ãæ»ıºÏ¼Æ%.3lfm{\\H0.7x;\\S2^;}£¬"), sarea);//sareaÓÃÓÚ´æ´¢Ö¸¶¨²ã¸ßºÍ¼ÆÈİÏµÊıÏÂµÄ¹¦ÄÜÇø¼°Íâ°ëÇ½Ãæ»ı
+		info += temp; info += it->first; info += _T("\\P\t");//
+		dzdarea += sarea;//ÀÛ¼Óµ±Ç°Àà±ğ·Ç¿Ûµº¹¦ÄÜÇøÃæ»ıºÍÍâ°ëÇ½Ãæ»ı
 	}
-	if(!wbqisAnn && fabs(wbqmj) > 0)
+	if(!wbqisAnn)
 	{
-		_stprintf(mj, _T("WBQ = %.3lf£¬%s"), wbqmj, wbqinfo);
-		dzdarea += wbqmj;//dzdareaÓÃÓÚ´æ´¢·Ö²ãÆ½ÃæÖĞËùÓĞ¹¦ÄÜÇøºÍÍâ°ëÇ½µÄ×ÜÃæ»ı
-		info += mj;
+		CString temp;
+		temp.Format(_T("WBQ = %.3lf£¬%s"), wbqjzmj, wbqcgjrxs);
+		info += temp;
 		info += _T("\\P\t");
+		dzdarea += wbqjzmj;//dzdareaÓÃÓÚ´æ´¢·Ö²ãÆ½ÃæÖĞËùÓĞ¹¦ÄÜÇøºÍÍâ°ëÇ½µÄ×ÜÃæ»ı
 	}
-	//{\\H0.7x;\\S2^;}ÔÚCADÖĞ»á±ä³É{\H0.7x;\S2^;}£¬±íÊ¾Æ½·½ÉÏ±ê£¬¿ÉÒÔ½«2¸ÄÎª3£¬±íÊ¾Á¢·½£¬ÒÔ´ËÀàÍÆ
-	if(fabs(cwArea) > EPS)
-		_stprintf(mj, _T("³µÎ»Ãæ»ıºÏ¼Æ = %.3lfm{\\H0.7x;\\S2^;}£¬×ÜÃæ»ıºÏ¼Æ = %.3lfm{\\H0.7x;\\S2^;}"), cwArea, dzdarea + cwArea);
-	else _stprintf(mj, _T("×ÜÃæ»ıºÏ¼Æ = %.3lfm{\\H0.7x;\\S2^;}"), dzdarea);
-	info += mj;
-	AcDbObjectId textid = DrawMText(pos, info, _T(""), m_fcmjzs._size*m_Scale, 
-		fabs(ranglePoint[X] - pos[X]), AcDbMText::kTopLeft);
-	setcolor(aname(textid), m_fcmjzs._color);//ÉèÖÃÊµÌåÑÕÉ«
-	setlayer(aname(textid), m_fcmjzs._layer);//ÉèÖÃÊµÌåÍ¼²ã
+	
+
+	double cwarea = 0.0;//ËùÓĞ³µÎ»Ãæ»ı
+	_stprintf(layer, _T("%s"), m_cw._layer);
+	AcDbObjectIdArray fcpmcwids;
+	ssFromNodes(fcpmcwids, fcpmnodes, 1, 1.0, layer);
+	for (int idx = 0; idx < fcpmcwids.length(); idx++)
+	{
+		FunctionHAH fcpmcwhah;
+		getFunctionArea(fcpmcwids.at(idx), fcpmcwhah);
+		cwarea += fcpmcwhah.m_jzmj;
+	}
+	if (fabs(cwarea) > EPS)//Èç¹û³µÎ»×ÜÃæ»ıÎªÁã£¬Ôò²»Êä³ö
+	{
+		CString temp;
+		temp.Format(_T("³µÎ»Ãæ»ıºÏ¼Æ = %.3lfm{\\H0.7x;\\S2^;}£¬"), cwarea);//×·¼Ó³µÎ»Ãæ»ıºÏ¼Æ
+		info += temp;
+	}
+	CString temp;
+	temp.Format(_T("×ÜÃæ»ıºÏ¼Æ = %.3lfm{\\H0.7x;\\S2^;}"), dzdarea + cwarea);//×·¼Ó×ÜÃæ»ıºÏ¼Æ
+	info += temp;
 	return true;
+}
+
+bool XMJGHouse::addCWAnnotion(const AcDbObjectId &id, CString &info)
+{
+	AcDbObjectIdArray cwids;//³µÎ»ID¼¯ºÏ
+	AcGePoint2dArray nodes;//idµÄËùÓĞ½Úµã
+	GetPlList(aname(id), nodes);
+	TCHAR cwlayer[255] = { 0 };
+	_stprintf(cwlayer, _T("%s"), m_cw._layer);
+	if (!ssFromNodes(cwids, nodes, 1, 1.0, _T("*POLYLINE"), cwlayer)) return false;//¿òÑ¡ËùÓĞµÄ¶à¶ÎÏß
+	int cwCount = 0;//id°üÎ§µÄ³µÎ»×ÜÊıÄ¿
+	map<CString, int> carmp;
+	for (int indx = 0; indx < cwids.length(); ++indx)
+	{
+		AcDbObjectId cwid = cwids[indx];//»ñµÃµ±Ç°µÄ³µÎ»IDºÅ
+		TCHAR cwsm[255] = { 0 };
+		ReadXdata(aname(cwid), _T("CWSM"), 1, cwsm);//¶ÁÈ¡XDataÖĞµÄ³µÎ»ÊıÄ¿
+		int icwsm = _tstoi(cwsm);
+		cwCount += icwsm;//ÀÛ¼Ó³µÎ»ÊıÄ¿
+		TCHAR cwlx[255] = { 0 };
+		ReadXdata(aname(cwid), _T("CWLX"), STRING_TYPE, cwlx);//¶ÁÈ¡XDataÖĞµÄ³µÎ»ÀàĞÍ
+		if (carmp.find(cwlx) != carmp.end())//ÒòÎª´æÔÚ×Ó³µÎ»£¬ËùÒÔ³µÎ»¸öÊı¿ÉÄÜÎªÁã£¬²»ÄÜ¼òµ¥¼Ó1
+			carmp[cwlx] += icwsm;
+		else//ÒòÎª´æÔÚ×Ó³µÎ»£¬ËùÒÔ³µÎ»¸öÊı¿ÉÄÜÎªÁã£¬²»ÄÜ¼òµ¥¸³Öµ1
+			carmp.insert(make_pair(cwlx, icwsm));
+	}
+	CString zjtcbw;
+	zjtcbw.Format(_T("±¾²ã×Ü¼ÆÍ£³µ²´Î»%d¸ö£¬"), cwCount);
+	info += zjtcbw;
+	if (carmp.size() != 0)
+	{
+		info += _T("ÆäÖĞ");
+		for (map<CString, int>::const_iterator it = carmp.begin(); it != carmp.end(); ++it)
+		{
+			CString temp;
+			temp.Format(_T("%s%d¸ö£¬"), it->first, it->second);
+			info += temp;
+		}
+	}
+	info = info.Mid(0, info.GetLength() - _tcslen(_T("£¬")));
 }
 
 AcDbObjectIdArray XMJGHouse::getFunctionAreaIds(const AcDbObjectId &id)
@@ -7348,8 +7345,8 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 		dls[dh][layernum].scbz = cxx[_T("Êµ²â±¸×¢")];
 		dls[dh][layernum].lcount = _ttoi(cxx[_T("²ãÊı")]);
 		dls[dh][layernum].jzmj = _tstof(cxx[_T("½¨ÖşÃæ»ı")]);
-		if(1 == _ttoi(cxx[_T("ÆğÊ¼²ãÃû")]))
-			jzzdmj += _tstof(cxx[_T("²ãÃæ»ı")]);
+		//if(1 == _ttoi(cxx[_T("ÆğÊ¼²ãÃû")]))
+		//	jzzdmj += _tstof(cxx[_T("½¨ÖşÕ¼µØÃæ»ı")]);
 		dls[dh][layernum].jrmj = _tstof(cxx[_T("¼ÆÈİÃæ»ı")]);
 		CString cinfo = cxx[_T("ÆğÊ¼²ãÃû")];
 		if(fabs(_tstof(cinfo) - _ttoi(cinfo) - 0.5) < EPS) continue;
@@ -7361,6 +7358,15 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 	}
 	scdscw = getTotalCarCount(mjsm[_T("Êµ²âµØÉÏ³µÎ»")]);
 	scdxcw = getTotalCarCount(mjsm[_T("Êµ²âµØÏÂ³µÎ»")]);
+
+	{
+		cxxs = pdb.getDXXTableInfo();//DXX±íÖĞµÄ¡°½¨ÖşÕ¼µØÃæ»ı¡±ÁĞÖĞµÄÈ«²¿ÖµÏà¼Ó¼´Îª¿¢¹¤ÑéÊÕ±¨¸æÊéÖĞµÄ½¨ÖşÕ¼µØÃæ»ı
+		for (int idx = 0; idx < (int)cxxs.size(); idx++)
+		{
+			MStr cxx = cxxs.at(idx);
+			jzzdmj += _tstof(cxx[_T("½¨ÖşÕ¼µØÃæ»ı")]);
+		}
+	}
 
 #pragma endregion Í³¼ÆĞÅÏ¢
 	char temp[1024] = {0};
@@ -7567,8 +7573,8 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 
 	word.replaceText("#SCJZGD#", scdinfo.c_str());							//¹æ»®½¨Öş¸ß¶È
 	word.replaceText("#SCJZGDSM#", scdinfosm.c_str());
-
 	double jsydmj = _tstof(mjsm[_T("Êµ²â½¨ÖşÓÃµØÃæ»ı")]);
+
 	sprintf(temp, "%.2lf", jzzdmj); ttt = temp;
 	//addDescribeInfo("", ttt);
 	word.replaceText("#JZZDMJ#", ttt.c_str());								//½¨ÖşÕ¼µØÃæ»ı
@@ -8056,8 +8062,8 @@ void XMJGHouse::readFunctionInfo(const AcDbObjectIdArray &ids, AcDbObjectIdArray
 		row = 10;
 		if(RTCAN == ads_getint(_T("ÇëÊäÈëÒ»ĞĞ×¢¼ÇÃæ»ı¸öÊı<10>£º"), &row)) return;
 	}
-	if(RTNORM != ads_getpoint(NULL, _T("\n ÇëÑ¡ÔñÒª²åÈëµÄÎ»ÖÃ£º"), insert)) return;
-	if (RTNORM != ads_getpoint(insert, _T("\n ÇëÊ°È¡ÎÄ×ÖÏÔÊ¾ºáÏò×î´ó±ß½çµã£º"), ranglePoint))return;
+	if(RTNORM != ads_getpoint(NULL, _T("\nÇëÊ°È¡ÎÄ×ÖÏÔÊ¾ºáÏò×ó²à×î´ó±ß½çµã£º"), insert)) return;
+	if (RTNORM != ads_getpoint(insert, _T("\nÇëÊ°È¡ÎÄ×ÖÏÔÊ¾ºáÏòÓÒ²à×î´ó±ß½çµã£º"), ranglePoint))return;
 	TCHAR info[255] = { 0 };
 	typedef map<CString, CString, CmpCstr> CWMap;
 	CWMap note; CString code;
@@ -8134,7 +8140,7 @@ void XMJGHouse::readFunctionInfo(const AcDbObjectIdArray &ids, AcDbObjectIdArray
 		text += temp;
 		index++;
 	}
-	AcDbObjectId tid = DrawMText(insert, text, _T("ºÚÌå"), m_mjzj._size*m_Scale, 
+	AcDbObjectId tid = DrawMText(insert, text, m_mjzj._font, m_mjzj._size*m_Scale, 
 		fabs(ranglePoint[X] - insert[X]), AcDbMText::kTopLeft);
 	setlayer(aname(tid), m_mjzj._layer); setcolor(aname(tid), m_mjzj._color);
 	AddXdata(aname(tid), _T("ZJLX"), 0, _T("GNQMJZJ"));		//¹¦ÄÜÇøÃæ»ı×¢¼Ç
@@ -8270,47 +8276,58 @@ void XMJGHouse::layerArea(const AcDbObjectId &id, double &jzmj, double &jrmj, do
 
 void XMJGHouse::removeSubFunction(const AcDbObjectId &id, double &jzArea, double &jrArea)
 {
-	AcGePoint2dArray node;
-	GetPlList(aname(id), node);
-	AcDbObjectIdArray ids; TCHAR layer[255] = {0};
-	_stprintf(layer, _T("%s,%s"), m_gnq._layer, m_cw._layer);
-	ssFromNodes(ids, node, 1, 0.5, _T("*POLYLINE"), layer);
-	ids.remove(id);
-	int len = ids.length();
-	TCHAR jzxs[255] = {0};
-	TCHAR jrxs[255] = {0};
-	for(int idx = 0; idx < len; ++idx)
+	AcGePoint2dArray nodes;//idËùÓĞ½Úµã
+	GetPlList(aname(id), nodes);//»ñµÃidËùÓĞ½Úµã
+	AcDbObjectIdArray dids;//ËùÓĞµºID¼¯ºÏ
+	TCHAR layer[255] = { 0 };//ÓÃÓÚ´¢´æÍ¼²ãÃû³Æ
+	_stprintf(layer, _T("%s"), m_gnq._layer);//¸´ÖÆ¹¦ÄÜÇøÍ¼²ã
+	ssFromNodes(dids, nodes, 1, 0.5, _T("*POLYLINE"), layer);//WPÑ¡Ôñ¹¦ÄÜÇøÊµÌå
+	dids.remove(id);
+	for (int idx = 0; idx < dids.length(); idx++)//±éÀúµº¹¦ÄÜÇø
 	{
-		FunctionHAH hah;
-		AcDbObjectId tid = ids[idx];
-		//getFunctionArea(tid, hah);
-		double area = 0.0;
-		GetEntArea(aname(tid), area);
-		jzArea -= area;
-		jrArea -= area;
+		AcDbObjectId did = dids.at(idx);
+		TCHAR disKouDao[255] = { 0 };//¿ÛµºÊôĞÔ
+		ReadXdata(aname(did), _T("¿Ûµº"), STRING_TYPE, disKouDao);
+		if (_tcscmp(disKouDao, _T("false")) == 0)continue;
+		double area = 0.0;//¼¸ºÎÃæ»ı
+		GetEntArea(aname(did), area);//»ñµÃ¼¸ºÎÃæ»ı
+		TCHAR jrxs[255] = { 0 };//¼ÆÈİÏµÊı
+		ReadXdata(aname(did), _T("¼ÆÈİÏµÊı"), STRING_TYPE, jrxs);
+		jrArea -= area * _tstof(jrxs);//¿Û³ıµº¹¦ÄÜÇø¼ÆÈİÃæ»ı
+		TCHAR jzxs[255] = { 0 };//Ãæ»ıÏµÊı
+		ReadXdata(aname(did), _T("Ãæ»ıÏµÊı"), STRING_TYPE, jzxs);
+		jzArea -= area * _tstof(jzxs);//¿Û³ıµº¹¦ÄÜÇø½¨ÖşÃæ»ı
+	}
+	_stprintf(layer, _T("%s"), m_cw._layer);//¸´ÖÆ³µÎ»Í¼²ã
+	ssFromNodes(dids, nodes, 1, 0.5, _T("*POLYLINE"), layer);//WPÑ¡Ôñ³µÎ»ÊµÌå
+	for(int idx = 0; idx < dids.length(); ++idx)//±éÀúµº³µÎ»
+	{
+		AcDbObjectId did = dids.at(idx);
+		TCHAR pr[255] = { 0 };//µº³µÎ»²úÈ¨ÊôĞÔ
+		ReadXdata(aname(did), _T("PR"), STRING_TYPE, pr);//¶ÁÈ¡µº³µÎ»²úÈ¨ÊôĞÔ
+		if (_tcscmp(pr, _T("1")) == 0)continue;//Ö»¿Û³ı¶à²úÈ¨µº³µÎ»Ãæ»ı
+		double area = 0.0;//µº³µÎ»¼¸ºÎÃæ»ı
+		GetEntArea(aname(did), area);//¼ÆËãµº³µÎ»¼¸ºÎÃæ»ı
+		jzArea -= area;//¿Û³ıµº³µÎ»¼¸ºÎÃæ»ı
+		jrArea -= area;//¿Û³ıµº³µÎ»¼¸ºÎÃæ»ı
 	}
 }
 
 bool XMJGHouse::getFunctionArea(AcDbObjectId &id, FunctionHAH &hah)//¼ÆËã¹¦ÄÜÇø¡¢³µÎ»Ãæ»ı
-{//¹¦ÄÜÇøIDºÅ
-	TCHAR layer[20] = { 0 };//´æ´¢¹¦ÄÜÇøÍ¼²ã
-	GetEntLayer(id, layer);//»ñµÃ¹¦ÄÜÇøÍ¼²ã
-	if(m_gnq._layer.CompareNoCase(layer) == 0)//ÅĞ¶ÏÊÇ·ñÊÇ¹¦ÄÜÇø
+{
+	TCHAR layer[20] = { 0 };//´æ´¢¹¦ÄÜÇø»ò³µÎ»Í¼²ã
+	GetEntLayer(id, layer);//»ñµÃidµÄÍ¼²ã
+	if(m_gnq._layer.CompareNoCase(layer) == 0)//Èç¹ûÊÇ¹¦ÄÜÇø
 	{
 		TCHAR value[255] = { 0 };
-		double area = 0.0;
-		double jzarea = 0.0;//½¨ÖşÃæ»ı
-		double jrarea = 0.0;//¼ÆÈİÃæ»ı
-		GetEntArea(aname(id), area);//¼ÆËã¹¦ÄÜÇø»ò³µÎ»±ß½çÏßËùÎ§Ãæ»ı
-		jzarea = jrarea = area;
-		ReadXdata(aname(id), _T("¼ÆÈİÏµÊı"), 0, value);//¶ÁÈ¡¹¦ÄÜÇø»ò³µÎ»µÄ¼ÆÈİÏµÊı
-		hah.m_jrxs = (float)_tstof(value);//½«¼ÆÈİÏµÊı¸³Öµ¸øhah.m_jrxs
-		//hah.m_jrmj = area * _tstof(value);
-		ReadXdata(aname(id), _T("Ãæ»ıÏµÊı"), 0, value);//¶ÁÈ¡¹¦ÄÜÇø»ò³µÎ»µÄÃæ»ıÏµÊı
-		//hah.m_jzmj = area * _tstof(value);
-		removeSubFunction(id, jzarea, jrarea);
-		hah.m_jzmj = jzarea * _tstof(value);
-		hah.m_jrmj = jrarea * hah.m_jrmj;
+		double area = 0.0;//¹¦ÄÜÇø¼¸ºÎÃæ»ı
+		GetEntArea(aname(id), area);//¼ÆËã¹¦ÄÜÇø±ß½çÏßËùÎ§Ãæ»ı
+		ReadXdata(aname(id), _T("¼ÆÈİÏµÊı"), 0, value);//¶ÁÈ¡¹¦ÄÜÇøµÄ¼ÆÈİÏµÊı
+		hah.m_jrxs = _tstof(value);//¸³Öµ¼ÆÈİÏµÊı
+		hah.m_jrmj = area * _tstof(value);//¼ÆËã¼ÆÈİÃæ»ı
+		ReadXdata(aname(id), _T("Ãæ»ıÏµÊı"), 0, value);//¶ÁÈ¡¹¦ÄÜÇøµÄÃæ»ıÏµÊı
+		hah.m_jzmj = area * _tstof(value);//¼ÆËã½¨ÖşÃæ»ı
+		removeSubFunction(id, hah.m_jzmj, hah.m_jrmj);
 		ReadXdata(aname(id), _T("¹¦ÄÜÇø¸ß¶È"), 0, value);
 		hah.m_cg = (float)_tstof(value);
 		ReadXdata(aname(id), _T("¹¦ÄÜÇø¼ò³Æ"), 0, value);
@@ -8318,7 +8335,7 @@ bool XMJGHouse::getFunctionArea(AcDbObjectId &id, FunctionHAH &hah)//¼ÆËã¹¦ÄÜÇø¡
 		ReadXdata(aname(id), _T("¹¦ÄÜÇø±àºÅ"), 0, value);
 		hah.m_bh += value;
 	}
-	else if(m_cw._layer.CompareNoCase(layer) == 0)//ÅĞ¶ÏÊÇ·ñÊÇ³µÎ»
+	else if(m_cw._layer.CompareNoCase(layer) == 0)//Èç¹ûÊÇ³µÎ»
 	{
 		ReadXdata(aname(id), _T("PR"), 0, layer);
 		if(_tcscmp(layer, _T("2")) == 0)
@@ -8340,25 +8357,30 @@ void XMJGHouse::getWaiBanQiangArea(const AcDbObjectId &id, double &jzmj, double 
 	wqx = oper.readTextPropertyTable(_T("½¨ÖşÍâÇ½Ïß"));
 	nqx = oper.readTextPropertyTable(_T("½¨ÖşÄÚÇ½Ïß"));
 	//SelectFilter sf1(8, nqx._layer), sf2(8, wqx._layer), sf3(RTDXF0, _T("*POLYLINE"));//Ã»ÓĞÊ¹ÓÃ£¬½¨ÒéÉ¾³ı
-	AcGePoint2dArray node; GetPlList(aname(id), node);//»ñµÃid±êÊ¶µÄ¶à¶ÎÏßµÄËùÓĞ½Úµã
-	AcDbObjectIdArray wids, nids; double warea = 0.0, narea = 0.0;
-	TCHAR layer[255] = {0}; _stprintf(layer, _T("%s"), wqx._layer);
+	AcGePoint2dArray node;//id±êÊ¶µÄ¶à¶ÎÏßËùÓĞ½Úµã
+	GetPlList(aname(id), node);//»ñµÃid±êÊ¶µÄ¶à¶ÎÏßµÄËùÓĞ½Úµã
+	AcDbObjectIdArray wids;//½¨ÖşÍâÇ½ÏßID¼¯ºÏ
+	AcDbObjectIdArray nids;//½¨ÖşÄÚÇ½ÏßID¼¯ºÏ
+	double warea = 0.0;//½¨ÖşÍâÇ½Ïß°üÎ§Ãæ»ıÖ®ºÍ
+	double narea = 0.0;//½¨ÖşÄÚÇ½Ïß°üÎ§Ãæ»ıÖ®ºÍ
+	TCHAR layer[255] = { 0 };//Í¼²ã
+	_stprintf(layer, _T("%s"), wqx._layer);//½«CStringÀàĞÍµÄÍâ°ëÇ½Í¼²ã×ª»¯ÎªTCHAR×Ö·û´®
 	if(!ssFromNodes(wids, node, 1, 1.0, _T("*POLYLINE"), layer)) return;//Ñ¡Ôñid±êÊ¶µÄ¶à¶ÎÏßÄÚµÄËùÓĞÍâÇ½Ïß
-	_stprintf(layer, _T("%s"), nqx._layer);
+	_stprintf(layer, _T("%s"), nqx._layer);//½«CStringÀàĞÍµÄÄÚ°ëÇ½Í¼²ã×ª»¯ÎªTCHAR×Ö·û´®
 	if(!ssFromNodes(nids, node, 1, 1.0, _T("*POLYLINE"), layer)) return;//Ñ¡Ôñid±êÊ¶µÄ¶à¶ÎÏßÄÚµÄËùÓĞÄÚÇ½Ïß
-	for(int idx = 0; idx < wids.length(); ++idx)//¼ÆËãËùÓĞÍâÇ½ËùÎ§Ãæ»ıÖ®ºÍ
+	for(int idx = 0; idx < wids.length(); ++idx)//¼ÆËãËùÓĞÍâÇ½ÏßËùÎ§Ãæ»ıÖ®ºÍ
 	{
 		double area = 0;
 		GetEntArea(aname(wids[idx]), area);
 		warea += area;
 	}
-	for(int idx = 0; idx < nids.length(); ++idx)//¼ÆËãËùÓĞÄÚÇ½ËùÎ§Ãæ»ıÖ®ºÍ
+	for(int idx = 0; idx < nids.length(); ++idx)//¼ÆËãËùÓĞÄÚÇ½ÏßËùÎ§Ãæ»ıÖ®ºÍ
 	{
 		double area = 0.0;
 		GetEntArea(aname(nids[idx]), area);
 		narea += area;
 	}
-	jzmj += (warea - narea); jrmj += (warea - narea);//ÎÊÌâ£ºÎªÊ²Ã´´«ÈëÁ½¸ö±äÁ¿ÒıÓÃÈ´¸³ÖµÒ»Ñù
+	jzmj += (warea - narea); jrmj += (warea - narea);//½«id±êÊ¶µÄ¶à¶ÎÏßÄÚµÄÍâ°ëÇ½Ãæ»ı×·¼Óµ½jzmjºÍjrmjÖĞ
 }
 
 bool XMJGHouse::addFuncion2Layer(const FunctionHAH &func, LayerHAH &layer)

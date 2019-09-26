@@ -3516,36 +3516,33 @@ void sortObjectByXDataInt(AcDbObjectIdArray &ids, const VStr &filter, bool del)
 	ids.append(tmps);
 }
 
-MSSIds sortGNQByXData(const AcDbObjectIdArray &ids)
+MSIds sortGNQByXData(const AcDbObjectIdArray &gnqids)//按照层高和计容系数对功能进行分类
 {
-	MSSIds mssids; TCHAR value[255] = {0};
-	for(int idx = 0; idx < ids.length(); ++idx)
+	MSIds msids;//按照层高和计容系数分类的功能区集合
+	for(int idx = 0; idx < gnqids.length(); ++idx)
 	{
-		CString temp, tj; AcDbObjectId id = ids[idx];
-		ReadXdata(aname(id), _T("梯间名称"), 0, value);
-		if(_tcslen(value) != 0) tj = value; CString jrxs;
-		if(!ReadXdata(aname(id), _T("功能区高度"), 0, value)) continue;
-		temp.Format(_T("层高%.2lfm"), _tstof(value));
-		if(!ReadXdata(aname(id), _T("计容系数"), 0, value)) continue;
-		if(_tstof(value) > EPS) jrxs.Format(_T("，计容系数%.2lf"), _tstof(value));
-		temp += jrxs; if(mssids.find(tj) == mssids.end()) mssids[tj] = MSIds();
-		if(mssids[tj].find(temp) == mssids[tj].end()) mssids[tj][temp] = AcDbObjectIdArray();
-		mssids[tj][temp].append(id);
+		AcDbObjectId gnqid = gnqids[idx];//当前功能区ID号
+		TCHAR value[255] = { 0 };//XData属性值临时存储变量
+		if(!ReadXdata(aname(gnqid), _T("功能区高度"), 0, value)) continue;
+		CString cg;//当前功能区层高
+		cg.Format(_T("层高%.2lfm"), _tstof(value));
+		if(!ReadXdata(aname(gnqid), _T("计容系数"), 0, value)) continue;
+		CString jrxs;//当前功能区计容系数
+		if(_tstof(value) > EPS) jrxs.Format(_T("，计容系数%.2lf"), _tstof(value));//分隔符为中文逗号
+		CString cgjrxs; cgjrxs += cg; cgjrxs += jrxs;//整合层高和计容系数
+		if (msids.find(cgjrxs) == msids.end())msids[cgjrxs] = AcDbObjectIdArray();
+		msids[cgjrxs].append(gnqid);
 	}
-	VStr filter;
+	VStr filter;//这是一个CString vector
 	filter.push_back(_T("功能区简称"));
 	filter.push_back(_T("功能区编号"));
-	for(MSSIdsIter sit = mssids.begin(); sit != mssids.end(); ++sit)
+	for (MSIdsIter it = msids.begin(); it != msids.end(); ++it)//遍历不同层高和计容系数下的功能区ID集合
 	{
-		MSIds msids = sit->second;
-		for(MSIdsIter it = msids.begin(); it != msids.end(); ++it)
-		{
-			AcDbObjectIdArray tids = it->second;
-			sortObjectByXDataInt(tids, filter);
-			it->second = tids;
-		}
+		AcDbObjectIdArray tids = it->second;//获得当前层高和计容系数下的功能区ID集合
+		sortObjectByXDataInt(tids, filter);//以功能区简称和编号按照ASCII值大小进行排序
+		it->second = tids;//将排序后的功能区ID集合赋值给当前层高和计容系数下的功能区ID集合
 	}
-	return mssids;
+	return msids;
 }
 
 bool stringIsDigit(const CString &str)
