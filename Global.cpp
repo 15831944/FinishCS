@@ -2823,8 +2823,9 @@ bool IProjectMDB::clearPictureTable()
 
 CString IProjectMDB::getProjectName()
 {
-	CString value;
-	db->ReadDataBase(_T("JBXX"), _T("项目名称"), value);
+	CString value; MStr filter;
+	filter[_T("关键字")] = _T("项目名称");
+	db->ReadDataBase(_T("JBXX"), _T("属性值"), filter, value);
 	return value;
 }
 

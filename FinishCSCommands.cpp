@@ -4354,6 +4354,84 @@ void FCSHeightPropertySettingDlg()
 	dlg.DoModal();
 }
 
+void FCSCreateHeighlySchematic()
+{
+	resbuf *rc = acutBuildList(5020, _T("*POLYLINE"), 8, _T("建筑物轮廓"), RTNONE);
+	ads_name ssName, ent; TCHAR path[255] = { 0 }; IDataBaseOper oper;
+	while (1)
+	{
+		int ret = ads_ssget(_T(""), NULL, NULL, rc, ssName);
+		if (ret != RTNORM) return; long len = 0; ads_sslength(ssName, &len);
+		if (len != 1) acutPrintf(_T("\n 请选择单个建筑物线")); break;
+	}
+	ads_ssname(ssName, 0, ent); TCHAR name[255] = { 0 };
+	ReadXdata(ent, _T("建筑物名称"), 0, name);
+	ads_findfile(_T("acad.dwt"), path);
+	CString ppath = oper.readPathTable("当前目录");
+	ppath.Append(_T("\\CG\\建筑高度示意图_"));
+	ppath.Append(name); ppath.Append(_T(".dwg"));
+	CopyFile(path, ppath, TRUE); int iOpen = 1;
+	if (RTCAN == ads_getint(_T("\n 创建高度示意图成功, 是否打开文件<1>：<1>打开、<2>不打开"), &iOpen)) return;
+	if (iOpen == 2) return; openDwgCommand(ppath);
+}
+
+void FCSAddHeightSchematicFrame()
+{
+	ads_name ssName; long length = 0;
+	ads_ssget(_T("X"), NULL, NULL, NULL, ssName);
+	ads_sslength(ssName, &length);
+	if (length == 0)
+	{
+		acutPrintf(_T("\n 图面上没有实体"));
+		return;
+	}
+	ads_point ptMin, ptMax; TCHAR tk[255] = { 0 };
+	GetEntsExtent(ssName, ptMin, ptMax, 0.0);
+	double width = ptMax[X] - ptMin[X];
+	double height = ptMax[Y] - ptMin[Y];
+
+	if (width > height)
+		_stprintf(tk, _T("%s"), _T("XMJG高度示意图横"));
+	else
+		_stprintf(tk, _T("%s"), _T("XMJG高度示意图竖"));
+
+	AcGePoint3d ptMid = GetMiddlePoint(apoint(ptMin), apoint(ptMax));
+	AcDbObjectId tid = DrawInsert(apoint(ptMid), tk);
+	SBreakBlock m_Block; m_Block.SetBlock(tid); m_Block.Explode();
+
+	AcGePoint3d tptMin, tptMax;
+	m_Block.findPointByHyperLink(_T("左下角点"), tptMin);
+	m_Block.findPointByHyperLink(_T("右上角点"), tptMax);
+
+	double tWidth = tptMax.x - tptMin.x;
+	double tHeight = tptMax.y - tptMin.y;
+
+	AcGePoint3d tptMid = GetMiddlePoint(apoint(tptMin), apoint(tptMax));
+
+	double xMove = ptMid.x - tptMid.x;
+	double yMove = ptMid.y - tptMid.y;
+
+	MoveEntitys(m_Block.m_objIdArr, xMove, yMove);
+
+	double wScale = tWidth / width;
+	double hScale = tHeight / height;
+
+	if (wScale > hScale)
+		ScaleEntitys(m_Block.m_objIdArr, ptMid, 1 / hScale);
+	else
+		ScaleEntitys(m_Block.m_objIdArr, ptMid, 1 / wScale);
+
+
+	CString bName = GetCurrentDwgName();
+	bName.Replace(_T(".dwg"), _T(""));
+	int pos = bName.Find(_T("_"));
+	IProjectMDB pdb;
+	CString pName = pdb.getProjectName();
+	m_Block.replaceText(_T("#FLOOR#"), bName.Mid(pos + 1));
+	m_Block.replaceText(_T("#ProjectName#"), pName);
+
+}
+
 void FCSModifyProjectRangeLineInfo()
 {
 	SelectFilter sf1(8, _T("XMFW"));

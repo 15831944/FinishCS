@@ -690,7 +690,7 @@
       <SuppressStartupBanner>true</SuppressStartupBanner>
       <LinkDLL>true</LinkDLL>
       <SubSystem>Windows</SubSystem>
-      <OutputFile>D:\cass\CASS2010\CASS 92 XMJG For AutoCAD2010\bin\$(ProjectName).arx</OutputFile>
+      <OutputFile>D:\Program Files (x86)\Cass_JG_XM For AutoCAD2010\bin\$(ProjectName).arx</OutputFile>
       <ImportLibrary>.\Release\FinishCS.lib</ImportLibrary>
       <AdditionalDependencies>rxapi.lib;acad.lib;acdb18.lib;acge18.lib;acedapi.lib;acgiapi.lib;adui18.lib;acui18.lib;acISMobj18.lib;AcMPolygonObj18.lib;smarttablebase.lib;wmf.lib;gdal_i.lib;libmupdf.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <ModuleDefinitionFile>.\FinishCS.def</ModuleDefinitionFile>

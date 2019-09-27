@@ -57,6 +57,16 @@ public:
 	 */
 	void addDomainProperty(const AcDbObjectId &, const CString &, const CString &, const CString &, const CString &, const CString &, bool);
 
+	/* @接口
+	 * @参数 
+	 * @参数 
+	 * @返回 bool 成功返回值为true，否则返回值为false
+	 * @作者 杨发荷
+	 * @邮箱 575814050@qq.com
+	 * @时间 2019年9月20号
+	 */
+	AcDbObjectId getBuildLayerRangeEntity(const AcDbObjectId &);
+
 private:
 
 	/* @接口 
@@ -82,16 +92,6 @@ private:
 	 * @时间 2019年9月21号
 	 */
 	AcDbObjectId getBuildLayerEntity(const AcGePoint2d &);
-
-	/* @接口
-	 * @参数 
-	 * @参数 
-	 * @返回 bool 成功返回值为true，否则返回值为false
-	 * @作者 杨发荷
-	 * @邮箱 575814050@qq.com
-	 * @时间 2019年9月20号
-	 */
-	AcDbObjectId getBuildLayerRangeEntity(const AcDbObjectId &);
 
 	/* @接口 
 	 * @返回 bool 成功返回值为true，否则返回值为false

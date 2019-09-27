@@ -784,6 +784,10 @@ void FCSDrawDomain();
  */
 void FCSHeightPropertySettingDlg();
 
+void FCSCreateHeighlySchematic();
+
+void FCSAddHeightSchematicFrame();
+
 /* @接口 
  * @返回 bool 成功返回值为true，否则返回值为false
  * @作者 杨发荷 

@@ -204,16 +204,31 @@ bool DomainOperate::createDomainByPointSel(AcDbObjectId &lineid)
 		*/
 }
 
+//选择需要重构的多段线，该多段线已经是功能区，需要用户手动选择输入是否继续重构功能区的选项数字
 bool DomainOperate::createDomainByBoundary(AcDbObjectId &lineid)
 {
-	AcDbObjectIdArray gnqs;
-	SelectFilter sf(8, _T("功能区")), sf1(RTDXF0, _T("*POLYLINE"));
-	SelectEntitys(gnqs, sf, sf1, _T("X")); ads_name ent; ads_point pt;
-	if(RTNORM != ads_entsel(_T("\n请选择重构的边界"), ent, pt)) return false;
-	acdbGetObjectId(lineid, ent); int yesorno = 0;
-	if(gnqs.contains(lineid) && (yesorno == 0))
+	AcDbObjectIdArray gnqids;//当前DWG中所有功能区
+	SelectFilter sf(8, _T("功能区")), sf1(RTDXF0, _T("*POLYLINE"));//创建功能区选择条件（图层、实体类型）
+	SelectEntitys(gnqids, sf, sf1, _T("X")); //选择当前DWG中所有功能区
+	ads_name plent;//用于储存选择的多段线
+	ads_point pt;//选择实体的拾取点
+	if(RTNORM != ads_entsel(_T("\n请选择重构的边界"), plent, pt)) return false;//拾取实体
+	acdbGetObjectId(lineid, plent);//将实体ID转化为ads_name
+	if (gnqids.contains(lineid) == true)
 	{
-		if(RTCAN == ads_getint(_T("\n该实体已经是功能区，是否要继续重构<0>是、<1>否：<0>"), &yesorno)) return false;
+		int yesorno = 0;//如果该实体已经是功能区，判断是否还需要重构
+		do
+		{
+
+			int es = ads_getint(_T("\n该实体已经是功能区，是否要继续重构<0>是、<1>否：<0>"), &yesorno);
+			switch (es)
+			{
+			case RTNONE:yesorno = 0; break;
+			case RTNORM:  if (yesorno != 0 && yesorno != 1)acutPrintf(_T("\n输入选项数字无效，请重新输入！")); break;
+			case RTCAN:  return false;
+			default: yesorno = 2;
+			}
+		} while (yesorno != 0 && yesorno != 1);
 	}
 	return true;
 }

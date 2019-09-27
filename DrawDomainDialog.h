@@ -61,7 +61,7 @@ public:
 	CEdit		m_domainHeight;
 	CComboBox	m_domainName;
 	CComboBox	m_areaFactor;
-	CComboBox	m_selectStyle;
+	CComboBox	m_selectStyle;//Ê°È¡·½Ê½
 
 private:
 

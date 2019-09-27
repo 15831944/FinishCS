@@ -4913,13 +4913,14 @@ void XMJGHouse::AddFunctionAnnotion()
 	ads_point pRight;//Ãæ»ı×¢ÊÍÏÔÊ¾ÓÒ²à±ß½ç
 	if (RTNORM != ads_getpoint(NULL, _T("\nÇëÊ°È¡ÎÄ×ÖºáÏòÏÔÊ¾×ó²à±ß½çµã£º"), pInsert)) return;//Ê°È¡Ãæ»ı×¢ÊÍ²åÈëÎ»ÖÃ
 	if (RTNORM != ads_getpoint(pInsert, _T("\nÇëÊ°È¡ÎÄ×ÖºáÏòÏÔÊ¾ÓÒ²à±ß½çµã£º"), pRight))return;//Ê°È¡Ãæ»ı×¢ÊÍÏÔÊ¾ÓÒ²à±ß½çÎ»ÖÃ
-	CString outputinfo;//Ãæ»ı×¢ÊÍÎÄ×ÖÄÚÈİ
 	for(int idx = 0; idx < fcpmids.length(); ++idx)//±éÀúÃ¿¸ö·Ö²ãÆ½ÃæÍ¼
 	{
 		AcDbObjectId fcpmid = fcpmids.at(idx);//»ñµÃÒ»¸ö·Ö²ãÆ½ÃæÍ¼µÄidºÅ
 		ads_point pmin, pmax;//·Ö²ãÆ½Ãæ×óÏÂ½ÇµãºÍÓÒÉÏ½Çµã
 		GetEntExtent(aname(fcpmid), pmin, pmax);//·¶Î§Ïß×óÏÂ½Ç×ø±ê¡¢·¶Î§ÏßÓÒÉÏ½Ç×ø±ê
 		ZoomWindow(pmin, pmax);//×î´ó»¯·Ö²ãÆ½ÃæÍ¼
+		CString outputinfo;//Ãæ»ı×¢ÊÍÎÄ×ÖÄÚÈİ
+		outputinfo += _T("×¢:\t");
 		//Êä³ö¹¦ÄÜÇøĞÅÏ¢
 		addFunctionAnnotion(fcpmid, outputinfo);
 		outputinfo += _T("\\P\t");
@@ -6366,7 +6367,6 @@ bool XMJGHouse::addFunctionAnnotion(const AcDbObjectId &id, CString &info)
 	double wbqjzmj = 0.0, wbqjrmj = 0.0;//½¨ÖşÃæ»ıwbqjzmj¡¢¼ÆÈİÃæ»ıwbqjrmj
 	getWaiBanQiangArea(id, wbqjzmj, wbqjrmj);//½«Íâ°ëÇ½Ãæ»ı×·¼Óµ½jzmjºÍjrmjÖĞ
 	bool wbqisAnn = fabs(wbqjzmj) == 0 ? true : false;//Ãæ»ıÎª0µÄÍâ°ëÇ½²»Êä³ö
-	info += _T("×¢:\t");
 	for (MSIdsIter it = fcpmgnqmsids.begin(); it != fcpmgnqmsids.end(); ++it)//±éÀú°´ÕÕ²ã¸ßºÍ¼ÆÈİÏµÊı·ÖÀàµÄ¹¦ÄÜÇø
 	{
 		double sarea = 0.0;//ÀÛ¼ÓÄ³Ò»Ö¸¶¨²ã¸ßºÍ¼ÆÈİÏµÊıÏÂµÄËùÓĞ·Ç¿Ûµº¹¦ÄÜÇøÃæ»ıºÍÍâ°ëÇ½Ãæ»ı£¨Èç¹ûÍâ°ëÇ½²ã¸ßµÈÓÚ¸ÃÀà±ğ²ã¸ß£©
@@ -6401,7 +6401,7 @@ bool XMJGHouse::addFunctionAnnotion(const AcDbObjectId &id, CString &info)
 			}
 		}
 		info = info.Mid(0, info.GetLength() - _tcslen(_T("¡¢")));//È¥³ıÎ²²¿ÖĞÎÄ¶ÙºÅ
-		if (sarea == 0.0) continue;//Èç¹ûsareaÎªÁã£¬Ôò²»Êä³öµ±Ç°Àà±ğ
+		if (sarea == 0.0) continue;//Èç¹ûsareaÎªÁã£¬Ôò²»Êä³öµ±Ç°²ã¸ßºÍ¼ÆÈİÏµÊıÏÂµÄ¹¦ÄÜÇøÃæ»ı
 		CString temp;
 		temp.Format(_T("Ãæ»ıºÏ¼Æ%.3lfm{\\H0.7x;\\S2^;}£¬"), sarea);//sareaÓÃÓÚ´æ´¢Ö¸¶¨²ã¸ßºÍ¼ÆÈİÏµÊıÏÂµÄ¹¦ÄÜÇø¼°Íâ°ëÇ½Ãæ»ı
 		info += temp; info += it->first; info += _T("\\P\t");//
@@ -6420,7 +6420,7 @@ bool XMJGHouse::addFunctionAnnotion(const AcDbObjectId &id, CString &info)
 	double cwarea = 0.0;//ËùÓĞ³µÎ»Ãæ»ı
 	_stprintf(layer, _T("%s"), m_cw._layer);
 	AcDbObjectIdArray fcpmcwids;
-	ssFromNodes(fcpmcwids, fcpmnodes, 1, 1.0, layer);
+	ssFromNodes(fcpmcwids, fcpmnodes, 1, 1.0, _T("*POLYLINE"), layer);
 	for (int idx = 0; idx < fcpmcwids.length(); idx++)
 	{
 		FunctionHAH fcpmcwhah;
@@ -8278,14 +8278,14 @@ void XMJGHouse::removeSubFunction(const AcDbObjectId &id, double &jzArea, double
 {
 	AcGePoint2dArray nodes;//idËùÓĞ½Úµã
 	GetPlList(aname(id), nodes);//»ñµÃidËùÓĞ½Úµã
-	AcDbObjectIdArray dids;//ËùÓĞµºID¼¯ºÏ
+	AcDbObjectIdArray dgnqids;//ËùÓĞµºID¼¯ºÏ£¬²»Í¬µÄID¼¯ºÏ¾¡¿ÉÄÜÊ¹ÓÃ²»Í¬µÄÃû³Æ£¬»òÕßÔÚÊ¹ÓÃÖ®Ç°Çå¿Õ¼¯ºÏ
 	TCHAR layer[255] = { 0 };//ÓÃÓÚ´¢´æÍ¼²ãÃû³Æ
 	_stprintf(layer, _T("%s"), m_gnq._layer);//¸´ÖÆ¹¦ÄÜÇøÍ¼²ã
-	ssFromNodes(dids, nodes, 1, 0.5, _T("*POLYLINE"), layer);//WPÑ¡Ôñ¹¦ÄÜÇøÊµÌå
-	dids.remove(id);
-	for (int idx = 0; idx < dids.length(); idx++)//±éÀúµº¹¦ÄÜÇø
+	ssFromNodes(dgnqids, nodes, 1, 0.5, _T("*POLYLINE"), layer);//WPÑ¡Ôñ¹¦ÄÜÇøÊµÌå
+	dgnqids.remove(id);
+	for (int idx = 0; idx < dgnqids.length(); idx++)//±éÀúµº¹¦ÄÜÇø
 	{
-		AcDbObjectId did = dids.at(idx);
+		AcDbObjectId did = dgnqids.at(idx);
 		TCHAR disKouDao[255] = { 0 };//¿ÛµºÊôĞÔ
 		ReadXdata(aname(did), _T("¿Ûµº"), STRING_TYPE, disKouDao);
 		if (_tcscmp(disKouDao, _T("false")) == 0)continue;
@@ -8298,11 +8298,12 @@ void XMJGHouse::removeSubFunction(const AcDbObjectId &id, double &jzArea, double
 		ReadXdata(aname(did), _T("Ãæ»ıÏµÊı"), STRING_TYPE, jzxs);
 		jzArea -= area * _tstof(jzxs);//¿Û³ıµº¹¦ÄÜÇø½¨ÖşÃæ»ı
 	}
+	AcDbObjectIdArray dcwids;
 	_stprintf(layer, _T("%s"), m_cw._layer);//¸´ÖÆ³µÎ»Í¼²ã
-	ssFromNodes(dids, nodes, 1, 0.5, _T("*POLYLINE"), layer);//WPÑ¡Ôñ³µÎ»ÊµÌå
-	for(int idx = 0; idx < dids.length(); ++idx)//±éÀúµº³µÎ»
+	ssFromNodes(dcwids, nodes, 1, 0.5, _T("*POLYLINE"), layer);//WPÑ¡Ôñ³µÎ»ÊµÌå
+	for(int idx = 0; idx < dcwids.length(); ++idx)//±éÀúµº³µÎ»
 	{
-		AcDbObjectId did = dids.at(idx);
+		AcDbObjectId did = dcwids.at(idx);
 		TCHAR pr[255] = { 0 };//µº³µÎ»²úÈ¨ÊôĞÔ
 		ReadXdata(aname(did), _T("PR"), STRING_TYPE, pr);//¶ÁÈ¡µº³µÎ»²úÈ¨ÊôĞÔ
 		if (_tcscmp(pr, _T("1")) == 0)continue;//Ö»¿Û³ı¶à²úÈ¨µº³µÎ»Ãæ»ı
@@ -8330,7 +8331,7 @@ bool XMJGHouse::getFunctionArea(AcDbObjectId &id, FunctionHAH &hah)//¼ÆËã¹¦ÄÜÇø¡
 		removeSubFunction(id, hah.m_jzmj, hah.m_jrmj);
 		ReadXdata(aname(id), _T("¹¦ÄÜÇø¸ß¶È"), 0, value);
 		hah.m_cg = (float)_tstof(value);
-		ReadXdata(aname(id), _T("¹¦ÄÜÇø¼ò³Æ"), 0, value);
+		ReadXdata(aname(id), _T("¹¦ÄÜÇø¼òÂë"), 0, value);
 		hah.m_bh.Format(_T("%s"), value);
 		ReadXdata(aname(id), _T("¹¦ÄÜÇø±àºÅ"), 0, value);
 		hah.m_bh += value;

@@ -359,7 +359,8 @@ void InitApplication()
 	AddCommand(_T("FCS"), _T("FCSNewGHSTYSGSTBYZ"), _T("FCSNewGHSTYSGSTBYZ"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSNewGHSTYSGSTBYZ);
 	AddCommand(_T("FCS"), _T("FCSDrawDomain"), _T("FCSDrawDomain"), ACRX_CMD_USEPICKSET | ACRX_CMD_TRANSPARENT, FCSDrawDomain);
 	AddCommand(_T("FCS"), _T("FCSHeightPropertySettingDlg"), _T("FCSHeightPropertySettingDlg"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSHeightPropertySettingDlg);
-
+	AddCommand(_T("FCS"), _T("FCSCreateHeighlySchematic"), _T("FCSCreateHeighlySchematic"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSCreateHeighlySchematic);
+	AddCommand(_T("FCS"), _T("FCSAddHeightSchematicFrame"), _T("FCSAddHeightSchematicFrame"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSAddHeightSchematicFrame);
 	//13076890385
 	AddCommand(_T("FCS"), _T("FCSSetDLProjectCode"), _T("F8-0"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSSetDLProjectCode);
 	AddCommand(_T("FCS"), _T("FCSExportControlPointAndRoadPicture"), _T("F8-1"), ACRX_CMD_TRANSPARENT | ACRX_CMD_USEPICKSET, FCSExportControlPointAndRoadPicture);
