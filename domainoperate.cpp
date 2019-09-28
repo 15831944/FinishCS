@@ -254,12 +254,20 @@ AcDbObjectId DomainOperate::getBuildLayerRangeEntity(const AcDbObjectId &gnqid)
 
 void DomainOperate::addDomainProperty(const AcDbObjectId &id, const CString &name, const CString &mjxs, const CString &jrxs, const CString &gd, const CString &bh, bool isLand)
 {
+	//id：拾取或创建的功能区
+	//name：功能区名称
+	//mjxs：面积系数
+	//jrxs：计容系数
+	//gd：高度
+	//bh：编号
+	//isLand：是否扣岛
 	if(fabs(_tstof(mjxs) - 0.5) < EPS)
 		setlinetype(aname(id), _T("X6"));
 	SetLineWidth(id, 0.06); IDataBaseOper oper;
 	addXdataProperty(id, name, mjxs, jrxs, gd, bh, isLand);
 	setlayer(aname(id), m_gnq._layer);
-	setcolor(aname(id), m_gnq._color);
+	if (isLand == true)setcolor(aname(id), 7);
+	else setcolor(aname(id), m_gnq._color);
 	addDomainAnnotate(id);
 }
 

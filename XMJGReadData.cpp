@@ -4271,30 +4271,33 @@ void XMJGHouse::RemoveIslandFunctionArea(AcDbObjectIdArray &idArr)
 
 void XMJGHouse::StatisticFunctionArea()
 {
-	SelectFilter f1(8, m_fcpm._layer);
-	AcDbObjectIdArray objects, IdArr;
-	if(false == SelectEntitys(objects, f1, _T(""))) return;
-	int len = objects.length(); ads_point pmin, pmax;
-	TCHAR info[200] = {0};
-	_stprintf(info, _T("%s,%s"), m_gnq._layer, m_cw._layer);
-	for(int idx = 0; idx < len; ++idx)
+	SelectFilter f1(8, m_fcpm._layer);//创建图层选择条件
+	AcDbObjectIdArray fcpmids;//分层平面ID集合
+	if(false == SelectEntitys(fcpmids, f1, _T(""))) return;//选择分层平面
+	TCHAR gnqlayer[200] = {0};
+	_stprintf(gnqlayer, _T("%s"), m_gnq._layer);
+	for(int idx = 0; idx < fcpmids.length(); ++idx)//遍历所有的分层平面
 	{
-		AcDbObjectId id = objects.at(idx);
-		AcGePoint2dArray node; AcDbObjectIdArray ids, IdArr;
-		GetPlList(aname(id), node);
-		ssFromNodes(ids, node, 1, 1.0, _T("*POLYLINE"), info);
-		RemoveIslandFunctionArea(ids);
-		acutPrintf(_T("\n 功能区的个数为%d，"), ids.length());
-		GetEntExtent(aname(id), pmin, pmax);
-		ZoomWindow(pmin, pmax); TCHAR gd[25] = {0};
-		ReadXdata(aname(id), _T("楼层高"), 0, info);
-		for(int idxx = 0; idxx < ids.length(); ++idxx)
+		AcDbObjectId fcpmid = fcpmids.at(idx);
+		ads_point pmin, pmax;
+		GetEntExtent(aname(fcpmid), pmin, pmax);
+		ZoomWindow(pmin, pmax);
+		AcGePoint2dArray fcpmnodes;
+		GetPlList(aname(fcpmid), fcpmnodes);
+		AcDbObjectIdArray gnqids, IdArr;
+		ssFromNodes(gnqids, fcpmnodes, 1, 1.0, _T("*POLYLINE"), gnqlayer);
+		RemoveIslandFunctionArea(gnqids);
+		acutPrintf(_T("\n功能区的个数为%d"), gnqids.length());
+		TCHAR fcpmgd[25] = {0};
+		ReadXdata(aname(fcpmid), _T("楼层高"), 0, fcpmgd);
+		for(int idxx = 0; idxx < gnqids.length(); ++idxx)
 		{
-			ReadXdata(aname(ids[idxx]), _T("功能区高度"), 0, gd);
-			if(_tcslen(gd) == 0)
-				AddXdata(aname(ids[idxx]), _T("功能区高度"), 0, info);
+			TCHAR gnqgd[255] = { 0 };
+			ReadXdata(aname(gnqids[idxx]), _T("功能区高度"), 0, gnqgd);
+			if(_tcslen(gnqgd) == 0)
+				AddXdata(aname(gnqids[idxx]), _T("功能区高度"), 0, fcpmgd);
 		}
-		readFunctionInfo(ids, IdArr);
+		readFunctionInfo(gnqids, IdArr);
 	}
 }
 
@@ -4694,14 +4697,14 @@ void XMJGHouse::calculateJZZDMJ()
 	SelectFilter sfJZWLK(8, _T("建筑物轮廓")), sfPl(RTDXF0, _T("*POLYLINE"));//创建筛选填充区域的选择条件
 	AcDbObjectIdArray JZWLKArr;//存储所有的建筑物轮廓线
 	if (false == SelectEntitys(JZWLKArr, sfJZWLK, sfPl, _T("X")))return;//选择范围内所有建筑物轮廓线
-	int JZWLKLen = JZWLKArr.length();//计算范围内的建筑物轮廓线数目
-	if (JZWLKLen == 0)
+	if (JZWLKArr.isEmpty() == true)
 	{
 		acutPrintf(_T("\n当前DWG不存在建筑物轮廓线"));
 		return;
 	}
-	IProjectMDB pdb;
-	for (int i = 0; i < JZWLKLen; i++)
+	typedef map<CString, double, CmpCstr> CWMap;
+	CWMap areanote;
+	for (int i = 0; i < JZWLKArr.length(); i++)
 	{
 		double JZZDMJ = 0.0;//
 		AcDbObjectId id = JZWLKArr.at(i);
@@ -4722,20 +4725,35 @@ void XMJGHouse::calculateJZZDMJ()
 		}
 		TCHAR ldh[255] = { 0 };//暂存建筑物楼栋号
 		ReadXdata(aname(id), _T("楼栋号"), 0, ldh);//读取建筑物轮廓线的XData中的建筑物楼栋号
+		if (areanote.find(ldh) != areanote.end())areanote[ldh] += JZZDMJ;
+		else areanote[ldh] = JZZDMJ;
+	}
+	CString outputarea;
+	IProjectMDB pdb;
+	for (CWMap::iterator ait = areanote.begin(); ait != areanote.end(); ait++)
+	{
 		MStr filter;//用于搜索符合条件的记录
-		filter[_T("楼栋号")] = ldh;//使用楼栋号作为搜索条件
+		filter[_T("楼栋号")] = ait->first;//使用楼栋号作为搜索条件
 		MStr setContent;//暂存更新记录内容
-		setContent[_T("建筑占地面积")].Format(_T("%.4lf"), JZZDMJ);
+		setContent[_T("建筑占地面积")].Format(_T("%.4lf"), ait->second);
 		if (pdb.getRecordCount(_T("DXX"), filter) == 0)//判断楼栋信息表中是否存在该建筑物记录
 		{//理论上一定存在该建筑物记录
-			acutPrintf(_T("\n出现异常操作错误，不存在建筑物“%s”%s"), ldh, _T("！"));
+			CString temp;
+			temp.Format(_T("当前的项目信息.mdb中不存在建筑物\t%s\n"), ait->first);
+			outputarea += temp;
 		}
 		else
 		{
 			pdb.setDXXTalbeInfo(filter, setContent);//更新建筑占地面积
-			acutPrintf(_T("\n建筑物“%s”%s"), ldh, _T("建筑占地面积计算成功！"));
+			CString temp;
+			temp.Format(_T("%s\t%.3lf\n"), ait->first, ait->second);
+			outputarea += temp;
 		}
 	}
+	acutPrintf(_T("\n------------------------------"));
+	acutPrintf(_T("\n建筑物名称\t建筑占地面积"));
+	acutPrintf(_T("\n%s"), outputarea);
+	acutPrintf(_T("\n------------------------------"));
 }
 
 void XMJGHouse::drawRotateLine()
@@ -4926,10 +4944,10 @@ void XMJGHouse::AddFunctionAnnotion()
 		outputinfo += _T("\\P\t");
 		//输出车位信息
 		addCWAnnotion(fcpmid, outputinfo);
-		AcDbObjectId fcmjzjTxtId = DrawMText(pInsert, outputinfo, m_fcmjzs._font, m_fcmjzs._size*m_Scale,
+		AcDbObjectId fcmjzsTxtId = DrawMText(pInsert, outputinfo, m_fcmjzs._font, m_fcmjzs._size*m_Scale,
 			fabs(pRight[X] - pInsert[X]), AcDbMText::kTopLeft);//输出面积注记
-		setcolor(aname(fcmjzjTxtId), m_fcmjzs._color);//设置实体颜色
-		setlayer(aname(fcmjzjTxtId), m_fcmjzs._layer);//设置实体图层
+		setcolor(aname(fcmjzsTxtId), m_fcmjzs._color);//设置实体颜色
+		setlayer(aname(fcmjzsTxtId), m_fcmjzs._layer);//设置实体图层
 	}
 }
 
@@ -6370,7 +6388,7 @@ bool XMJGHouse::addFunctionAnnotion(const AcDbObjectId &id, CString &info)
 	for (MSIdsIter it = fcpmgnqmsids.begin(); it != fcpmgnqmsids.end(); ++it)//遍历按照层高和计容系数分类的功能区
 	{
 		double sarea = 0.0;//累加某一指定层高和计容系数下的所有非扣岛功能区面积和外半墙面积（如果外半墙层高等于该类别层高）
-		AcDbObjectIdArray cjgnqids = it->second;//sm对应的所有功能区ID集合
+		AcDbObjectIdArray cjgnqids = it->second;//cjgnqids对应的所有功能区ID集合
 		std::map<CString, double, CmpCstr> gnqmp;
 		for (int idx = 0; idx < cjgnqids.length(); ++idx)//遍历功能区
 		{
@@ -8054,94 +8072,45 @@ bool checkGongNengQuIntersect(const AcDbObjectId &fid, const AcDbObjectId &iid)
 
 void XMJGHouse::readFunctionInfo(const AcDbObjectIdArray &ids, AcDbObjectIdArray &idArr)
 {
-	int row = 1; ads_point insert,ranglePoint; int count = ids.length();
+	//ids：功能区ID集合
+	int row = 10; 
+	int count = ids.length();
 	if(count <= 10)
 		row = count;
 	else
 	{
-		row = 10;
 		if(RTCAN == ads_getint(_T("请输入一行注记面积个数<10>："), &row)) return;
 	}
-	if(RTNORM != ads_getpoint(NULL, _T("\n请拾取文字显示横向左侧最大边界点："), insert)) return;
-	if (RTNORM != ads_getpoint(insert, _T("\n请拾取文字显示横向右侧最大边界点："), ranglePoint))return;
+	ads_point ptinsert;
+	if(RTNORM != ads_getpoint(NULL, _T("\n请拾取文字显示横向左侧最大边界点："), ptinsert)) return;
+	ads_point ptright;
+	if (RTNORM != ads_getpoint(ptinsert, _T("\n请拾取文字显示横向右侧最大边界点："), ptright))return;
 	TCHAR info[255] = { 0 };
 	typedef map<CString, CString, CmpCstr> CWMap;
-	CWMap note; CString code;
-	double area = 0.0, xs = 0.0; TCHAR layer[255] = { 0 };
-	for (int idx = 0; idx < count; ++idx)
+	CWMap areanote;
+	for (int idx = 0; idx < ids.length(); ++idx)
 	{
-		AcDbObjectId fid = ids.at(idx);
-		ReadXdata(aname(fid), _T("扣岛"), 0, info);
-		if (0 == _tcsicmp(info, _T("true"))) continue;
-		GetEntArea(aname(fid), area);
-		AcGePoint2dArray node;
-		GetPlList(aname(fid), node);
-		AcDbObjectIdArray gnqids;
-		ssFromNodes(gnqids, node, 1, 0.0);
-		gnqids.remove(fid);
-		//补充函数：删除gnqids中的拓扑关系中的岛
-		for (int indx = 0; indx < gnqids.length(); ++indx)
-		{
-			AcDbObjectId gnqid = gnqids.at(indx);
-			GetEntLayer(gnqid, layer);
-			if (m_gnq._layer.CompareNoCase(layer) != 0
-				&& m_cw._layer.CompareNoCase(layer) != 0) continue;
-			if (m_cw._layer.CompareNoCase(layer) == 0)
-			{
-				ReadXdata(aname(gnqid), _T("PR"), 0, info);
-				if (_tcscmp(info, _T("1")) != 0) continue;
-			}
-			if (m_gnq._layer.CompareNoCase(layer) == 0)
-			{
-				ReadXdata(aname(gnqid), _T("扣岛"), 0, info);
-				if (0 == _tcsicmp(info, _T("false")))continue;
-			}
-			double subarea = 0.0;
-			GetEntArea(aname(gnqid), subarea);
-			area -= subarea;
-		}
-		GetEntLayer(fid, layer);
-		if (m_gnq._layer.CompareNoCase(layer) == 0)
-		{
-			ReadXdata(aname(fid), _T("面积系数"), STRING_TYPE, info);
-			xs = _tstof(info); area *= xs;
-			ReadXdata(aname(fid), _T("功能区简称"), 0, info);
-			code = info;
-			ReadXdata(aname(fid), _T("功能区编号"), 0, info);
-			code += info;
-		}
-		else if (m_cw._layer.CompareNoCase(layer) == 0)
-		{
-			ReadXdata(aname(fid), _T("PR"), 0, info);
-			if (_tcscmp(info, _T("2")) != 0) area = 0;
-			else
-			{
-				ReadXdata(aname(fid), _T("CWBH"), STRING_TYPE, info);
-				code.Format(_T("%s"), info);
-			}
-		}
-		if (area < EPS) continue;
-		CString temp(code); int idxx = 1;
-		while (note.find(temp) != note.end())
-			temp.Format(_T("%s_%d"), code, idxx++);
-		code = temp;
-		note[code].Format(_T("%.3lf"), area);
+		FunctionHAH hah;
+		AcDbObjectId gnqid = ids.at(idx);
+		getFunctionArea(gnqid, hah);
+		if (hah.m_jzmj < EPS) continue;
+		areanote[hah.m_bh].Format(_T("%.3lf"), hah.m_jzmj);
 	}
-	CString text;
-	int index = 0;
-	for (CWMap::iterator ait = note.begin(); ait != note.end(); ++ait)
+	CString mjzjtxt;
+	int idx = 0;
+	for (CWMap::iterator ait = areanote.begin(); ait != areanote.end(); ++ait)
 	{
-		if (index > row - 1 && index%row == 0)
+		if (idx > row - 1 && idx%row == 0)
 		{
-			text += _T("\\P");
+			mjzjtxt += _T("\\P");
 		}
 		CString temp;
-		temp.Format(_T("%-4s= %-7s    "), ait->first, ait->second);
-		text += temp;
-		index++;
+		temp.Format(_T("%-4s = %-7s\t"), ait->first, ait->second);
+		mjzjtxt += temp;
+		idx++;
 	}
-	AcDbObjectId tid = DrawMText(insert, text, m_mjzj._font, m_mjzj._size*m_Scale, 
-		fabs(ranglePoint[X] - insert[X]), AcDbMText::kTopLeft);
+	AcDbObjectId tid = DrawMText(ptinsert, mjzjtxt, m_mjzj._font, m_mjzj._size*m_Scale, 
+		fabs(ptright[X] - ptinsert[X]), AcDbMText::kTopLeft);
 	setlayer(aname(tid), m_mjzj._layer); setcolor(aname(tid), m_mjzj._color);
 	AddXdata(aname(tid), _T("ZJLX"), 0, _T("GNQMJZJ"));		//功能区面积注记
 }

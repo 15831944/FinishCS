@@ -164,6 +164,7 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 		setControlStatus(TRUE);
 		return;
 	}
+	BOOL isFirstDraw = true;
 	while(TRUE)
 	{
 		bool flag = true;//true：功能区拾取成功；false：取消拾取功能区
@@ -196,7 +197,7 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 						acutPrintf(_T("\n无法判断是否为文本，请重新拾取"));
 						continue;
 					}
-					if (_tcscmp(enttype, _T("*TEXT")) != 0)
+					if (_tcscmp(enttype, _T("TEXT")) != 0 && _tcscmp(enttype, _T("MTEXT")) != 0)
 					{
 						acutPrintf(_T("\n请拾取文本"));
 						continue;
@@ -211,6 +212,7 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 				}
 				else
 				{
+					acutPrintf(_T("\n已取消拾取功能区名称"));
 					break;
 				}
 			} while (TRUE);
@@ -230,7 +232,7 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 						acutPrintf(_T("\n无法判断是否为文本，请重新拾取"));
 						continue;
 					}
-					if (_tcscmp(enttype, _T("*TEXT")) != 0)
+					if (_tcscmp(enttype, _T("TEXT")) != 0 && _tcscmp(enttype, _T("MTEXT")))
 					{
 						acutPrintf(_T("\n请拾取文本"));
 						continue;
@@ -239,31 +241,36 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 					{
 						TCHAR txt[255] = { 0 };
 						GetEntText(txtent, txt);
-						name = txt;
+						bh = txt;
 						break;
 					}
 				}
 				else//取消拾取注记编号文本，直接返回
 				{
+					acutPrintf(_T("\n已取消拾取功能区编号"));
 					break;
 				}
 			} while (TRUE);
 		}
-		bool isLand = (1 == m_areaKouChu.GetCheck());
-		domainOperate.addDomainProperty(gnqid, name, m_mjxs, m_jrxs, gd, bh, isLand);
-		acutPrintf(_T("\n 重构功能区成功"));
 		if (false == bh.IsEmpty())
 		{
 			while (TRUE)
 			{
-				int ibh = _tstoi(bh);
-				ibh++;
-				int cstrOriLen = bh.GetLength();
-				bh.Format(_T("%d"), ibh);
-				int cstrNewLen = bh.GetLength();
-				for (int i = 0; i < cstrOriLen - cstrNewLen; i++)
+				if (isFirstDraw == FALSE)
 				{
-					bh.Insert(0, _T("0"));
+					int ibh = _tstoi(bh);
+					ibh++;
+					int cstrOriLen = bh.GetLength();
+					bh.Format(_T("%d"), ibh);
+					int cstrNewLen = bh.GetLength();
+					for (int i = 0; i < cstrOriLen - cstrNewLen; i++)
+					{
+						bh.Insert(0, _T("0"));
+					}
+				}
+				else//第一个编号直接测试是否存在，不自加一
+				{
+					isFirstDraw = FALSE;
 				}
 				DomainOperate domainoperate;
 				AcDbObjectId fcpmid = domainoperate.getBuildLayerRangeEntity(gnqid);
@@ -277,8 +284,12 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 				{
 					AcGePoint2dArray fcpmnodes;
 					GetPlList(aname(fcpmid), fcpmnodes);
-					TCHAR gnqlayer[255] = { 0 };
-					ssFromNodes(gnqids, fcpmnodes, 1, 0.5, _T("*POLYLINE"), _T("功能区"));
+					CString gnqlayer;
+					IDataBaseOper oper;
+					oper.readCommonTable(_T("建筑竣工功能区图层"), gnqlayer);
+					TCHAR cstrlayer[255] = { 0 };
+					_stprintf(cstrlayer, _T("%s"), gnqlayer);
+					ssFromNodes(gnqids, fcpmnodes, 1, 0.5, _T("*POLYLINE"), cstrlayer);
 				}
 				BOOL existsamename = FALSE;
 				for (int idx = 0; idx < gnqids.length(); idx++)
@@ -288,7 +299,7 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 					ReadXdata(aname(Xgnqid), _T("功能区名称"), 0, Xname);
 					TCHAR Xbh[255] = { 0 };
 					ReadXdata(aname(Xgnqid), _T("功能区编号"), 0, Xbh);
-					if (_tcscmp(Xname, name) && _tcscmp(Xbh, bh))
+					if (_tcscmp(Xname, name) == 0 && _tcscmp(Xbh, bh) == 0)
 					{
 						existsamename = TRUE;
 						break;
@@ -297,6 +308,9 @@ void DrawDomainDialog::OnBnClickedButtonBegindraw()
 				if (existsamename == FALSE)break;
 			}
 		}
+		bool isLand = (1 == m_areaKouChu.GetCheck());
+		domainOperate.addDomainProperty(gnqid, name, m_mjxs, m_jrxs, gd, bh, isLand);
+		acutPrintf(_T("\n重构功能区成功"));
 	}
 }
 
