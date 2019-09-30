@@ -4430,9 +4430,10 @@ void XMJGHouse::ExportHouseDoc()
 		return;
 	}
 
-	IProjectMDB pdb; MStr record; AcDbObjectIdArray hxids;
+	IProjectMDB pdb; MStr record; 
+	AcDbObjectIdArray hxids;//项目红线ID集合
 	SelectFilter sf1(8, _T("红线")), sf2(RTDXF0, _T("*POLYLINE"));//创建图层和实体类型的选择条件
-	SelectEntitys(hxids, sf1, sf2, _T("X"));//选择当前DWG中图层为“红线”的所有多段线
+	SelectEntitys(hxids, sf1, sf2, _T("X"));//选择当前DWG中图层为“红线”的所有多段线，即为项目红线，项目红线只能是一条
 	if (hxids.length() == 0)
 		record[_T("实测建筑用地面积")].Format(_T("/"));
 	else if (hxids.length() == 1)
@@ -4441,11 +4442,12 @@ void XMJGHouse::ExportHouseDoc()
 		acdbOpenAcDbEntity(pEnt, hxids.first(), AcDb::kForRead);
 		AcDbPolyline *pLine = (AcDbPolyline *)pEnt;
 		pEnt->close();
-		if (Adesk::kFalse == pLine->isClosed())
+		if (Adesk::kFalse == pLine->isClosed())//项目红线必须闭合
 			record[_T("实测建筑用地面积")] = _T("红线内局部用地，暂无法界定");
 		else
 		{
-			double area = 0.0; GetEntArea(aname(hxids.first()), area);
+			double area = 0.0; 
+			GetEntArea(aname(hxids.first()), area);
 			record[_T("实测建筑用地面积")].Format(_T("%.2lf㎡"), area);
 		}
 	}
@@ -7292,15 +7294,19 @@ void XMJGHouse::updataAreaIniFile(MSBuild &info)
 
 struct LayerInfo
 {
-	int lcount;
-	CString ghcg;
-	CString sccg;
-	CString scbz;
-	CString ghbz;
-	CString slayer;
-	CString elayer;
-	double jzmj;
-	double jrmj;
+	int lcount;//层数
+	CString ghcg;//规划层高
+	CString sccg;//实测层高
+	CString ghjbcgsx;//规划局部层高上限
+	CString ghjbcgxx;//规划局部层高下限
+	CString scjbcgsx;//实测局部层高上限
+	CString scjbcgxx;//实测局部层高下限
+	CString scbz;//实测备注
+	CString ghbz;//规划备注
+	CString slayer;//起始层名
+	CString elayer;//终止层名
+	double jzmj;//建筑面积
+	double jrmj;//计容面积
 
 };
 
@@ -7339,11 +7345,16 @@ int getTotalCarCount(const CString &cwinfo)
 
 void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 {
+	IDataBaseOper oper;
+	oper.readFieldChangeTable();
+
 	IProjectMDB pdb; MStr mjsm = pdb.getMJXXTableInfo();
 	DLayerInfos dls; VMStr cxxs = pdb.getCXXTableInfo();
-	int scdscw = 0, scdxcw = 0; bool isDsLayer = false; //是否是地上层
+	int scdscw = 0, scdxcw = 0; 
+	//bool isDsLayer = false; //是否是地上层
 	double jzzdmj = 0.0; int layercount = 0;
 	double tttt = 0.0; BuildLayerCount lcinfo;
+	MStr zqszz;
 #pragma region 统计信息
 
 	for(int idx = 0; idx < (int)cxxs.size(); ++idx)
@@ -7366,13 +7377,77 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 		//if(1 == _ttoi(cxx[_T("起始层名")]))
 		//	jzzdmj += _tstof(cxx[_T("建筑占地面积")]);
 		dls[dh][layernum].jrmj = _tstof(cxx[_T("计容面积")]);
-		CString cinfo = cxx[_T("起始层名")];
-		if(fabs(_tstof(cinfo) - _ttoi(cinfo) - 0.5) < EPS) continue;
-		//if(_tstof(cxx[_T("实测层高")]) < EPS) continue;
+		dls[dh][layernum].scjbcgsx = cxx[_T("实测局部层高上限")];
+		dls[dh][layernum].scjbcgxx = cxx[_T("实测局部层高下限")];
+		dls[dh][layernum].ghjbcgsx = cxx[_T("规划局部层高上限")];
+		dls[dh][layernum].ghjbcgxx = cxx[_T("规划局部层高下限")];
+		if (cxx[_T("室外地坪")].IsEmpty() == false && cxx[_T("建筑高度")].IsEmpty() == false)
+		{
+			CString cstrslayer = cxx[_T("起始层名")];
+			int fenhao = cstrslayer.Find(_T(";"));
+			if (fenhao != -1)cstrslayer = cstrslayer.Mid(0, fenhao);
+			CString jianzhugaodu = cxx[_T("建筑高度")];
+			int biaogaoindex = jianzhugaodu.Find(_T("标高"));
+			jianzhugaodu = jianzhugaodu.Mid(biaogaoindex + 2, jianzhugaodu.GetLength() - biaogaoindex - 3);
+			CString shiwaidiping = cxx[_T("室外地坪")];
+			biaogaoindex = shiwaidiping.Find(_T("标高"));
+			shiwaidiping = shiwaidiping.Mid(biaogaoindex + 2, shiwaidiping.GetLength() - biaogaoindex - 3);
+			CString cstrTemp;
+			cstrTemp.Format(_T("%s：%.2lfm\n（自%s起算至%s%sm止）"),
+				cxx[_T("楼栋号")], _tstof(jianzhugaodu) - _tstof(shiwaidiping),
+				cxx[_T("室外地坪")], cxx[_T("标高位置")], jianzhugaodu);
+			if (zqszz.find(cxx[_T("楼栋号")]) == zqszz.end())
+			{
+				zqszz[cxx[_T("楼栋号")]] = cstrTemp;
+			}
+			else
+			{
+				zqszz[cxx[_T("楼栋号")]] += _T("\n");
+				zqszz[cxx[_T("楼栋号")]] += cstrTemp;
+			}
+		}
+		if (cxx[_T("室内地面")].IsEmpty() == false && cxx[_T("室外地坪")].IsEmpty() == true && cxx[_T("建筑高度")].IsEmpty() == false)
+		{
+			CString cstrslayer = cxx[_T("起始层名")];
+			int fenhao = cstrslayer.Find(_T(";"));
+			if (fenhao != -1)cstrslayer = cstrslayer.Mid(0, fenhao);
+			if (g_fieldchagetable.findIndex(cstrslayer) == true)
+				cstrslayer = g_fieldchagetable.getNameByIndex(cstrslayer);
+			else acutPrintf(_T("\n%s层没有对应的层名，已取消转化"), cstrslayer);
+			CString jianzhugaodu = cxx[_T("建筑高度")];
+			int biaogaoindex = jianzhugaodu.Find(_T("标高"));
+			jianzhugaodu = jianzhugaodu.Mid(biaogaoindex + 2, jianzhugaodu.GetLength() - biaogaoindex - 3);
+			CString shineidimian = cxx[_T("室内地面")];
+			biaogaoindex = shineidimian.Find(_T("标高"));
+			shineidimian = shineidimian.Mid(biaogaoindex + 2, shineidimian.GetLength() - biaogaoindex - 3);
+			CString cstrTemp;
+			cstrTemp.Format(_T("%s：%.2lfm\n（自%s%s起算至%s%sm止）"),
+				cxx[_T("楼栋号")], _tstof(jianzhugaodu) - _tstof(shineidimian),
+				cstrslayer, cxx[_T("室内地面")], cxx[_T("标高位置")], jianzhugaodu);
+			if (zqszz.find(cxx[_T("楼栋号")]) == zqszz.end())
+			{
+				zqszz[cxx[_T("楼栋号")]] = cstrTemp;
+			}
+			else
+			{
+				zqszz[cxx[_T("楼栋号")]] += _T("\n");
+				zqszz[cxx[_T("楼栋号")]] += cstrTemp;
+			}
+		}
 		if(_ttoi(cxx[_T("是否显示")]) == 0) continue;
-		if(_ttoi(cinfo) > 0 && !isDsLayer) isDsLayer = true; //主要是存在名义层，转为数字变为零
-		if(isDsLayer) lcinfo[dh].dscs += _ttoi(cxx[_T("层数")]);
-		else  lcinfo[dh].dxcs += _ttoi(cxx[_T("层数")]);
+		CString cinfo = cxx[_T("起始层名")];
+		int fenhao = cinfo.Find(_T(";"));
+		if (fenhao != -1)cinfo = cinfo.Mid(0, fenhao);
+		if (cinfo.IsEmpty() == true)continue;
+		if (cinfo.GetLength() != cinfo.SpanIncluding(_T("-0123456789.")).GetLength())
+			lcinfo[dh].dscs += _ttoi(cxx[_T("层数")]);
+		else
+		{
+			if (fabs(_tstof(cinfo)) < EPS) continue;//0层为非法层，不计入
+			if (fabs(_tstof(cinfo) - _ttoi(cinfo) - 0.5) < EPS) continue;//半地下层不计入
+			if (_tstof(cinfo) > 0) lcinfo[dh].dscs += _ttoi(cxx[_T("层数")]);
+			else  lcinfo[dh].dxcs += _ttoi(cxx[_T("层数")]);
+		}
 	}
 	scdscw = getTotalCarCount(mjsm[_T("实测地上车位")]);
 	scdxcw = getTotalCarCount(mjsm[_T("实测地下车位")]);
@@ -7417,14 +7492,14 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 	double zjrmj = 0.0, zjzmj = 0.0, dsjzmj = 0.0;
 	SmartTable::WordTable table; int row = 15;
 	int ret = word.findTable(row, 2, "#GHZYCG#", table);
-	double sccg = 0, ghcg = 0; ghlayerinfo = "";
-	for(; dlit != dls.end(); ++dlit)
+	double sccg = 0, ghcg = 0; sclayerinfo = ""; ghlayerinfo = "";
+	for(; dlit != dls.end(); ++dlit)//遍历楼栋号
 	{
 		LayerInfos ls = dlit->second;
 		CString dh = dlit->first;
 		table.copyRow(row, 0, ls.size());
 		LIter lit = ls.begin(); int layercount = 0;
-		for(; lit != ls.end(); ++lit, row++)
+		for(; lit != ls.end(); ++lit, row++)//遍历楼层号
 		{
 			LayerInfo linfo = lit->second;
 #pragma region 层信息
@@ -7470,11 +7545,23 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 			if(linfo.ghcg.GetLength() != 0)
 			{
 				//acutPrintf(_T("：%sm"), linfo.ghcg);
-				sprintf(temp, "：%.2lfm", _tstof(linfo.ghcg));
+				int ghblxp = linfo.ghcg.Find(_T("~"));
+				if (ghblxp == -1)sprintf(temp, "：%.2lfm", _tstof(linfo.ghcg));
+				else sprintf(temp, "：%.2lfm~%.2lfm",
+					_tstof(linfo.ghcg.Mid(0, ghblxp)), _tstof(linfo.ghcg.Mid(ghblxp + 1, linfo.ghcg.GetLength() - ghblxp - 1)));
 				ghlayerinfo.append(temp);
+				BOOL ghsxx = FALSE;//是否存在规划局部层高上下限
+				if (linfo.ghjbcgsx.GetLength() != 0 && linfo.ghjbcgxx.GetLength() != 0)
+				{
+					sprintf(temp, "\n(局部层高：%.2lfm~%.2lfm", _tstof(linfo.ghjbcgxx), _tstof(linfo.ghjbcgsx));
+					ghlayerinfo.append(temp);
+					ghsxx = TRUE;
+					if (linfo.ghbz.GetLength() == 0)ghlayerinfo.append(")");
+				}
 				if(linfo.ghbz.GetLength() != 0)
 				{
-					ghlayerinfo.append("(");
+					if (ghsxx == TRUE)ghlayerinfo.append(", ");
+					else ghlayerinfo.append("(");
 					TcharToChar(linfo.ghbz, tlinfo);
 					ghlayerinfo.append(tlinfo);
 					ghlayerinfo.append(")");
@@ -7490,12 +7577,23 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 
 			if(linfo.sccg.GetLength() != 0)
 			{
-				//acutPrintf(_T("：%sm"), linfo.sccg);
-				sprintf(temp, "：%.2lfm", _tstof(linfo.sccg));
+				int scblxp = linfo.sccg.Find(_T("~"));
+				if (scblxp == -1)sprintf(temp, "：%.2lfm", _tstof(linfo.sccg));
+				else sprintf(temp, "：%.2lfm~%.2lfm",
+					_tstof(linfo.sccg.Mid(0, scblxp)), _tstof(linfo.sccg.Mid(scblxp + 1, linfo.sccg.GetLength() - scblxp - 1)));
 				sclayerinfo.append(temp);
+				BOOL scsxx = FALSE;
+				if (linfo.scjbcgsx.GetLength() != 0 && linfo.scjbcgxx.GetLength() != 0)
+				{
+					sprintf(temp, "\n(局部层高：%.2lfm~%.2lfm", _tstof(linfo.scjbcgxx), _tstof(linfo.scjbcgsx));
+					sclayerinfo.append(temp);
+					scsxx = TRUE;
+					if (linfo.scbz.GetLength() == 0)sclayerinfo.append(")");
+				}
 				if(linfo.scbz.GetLength() != 0)
 				{
-					sclayerinfo.append("(");
+					if (scsxx == TRUE)sclayerinfo.append(", ");
+					else sclayerinfo.append("(");
 					TcharToChar(linfo.scbz, tlinfo);
 					sclayerinfo.append(tlinfo);
 					sclayerinfo.append(")");
@@ -7514,10 +7612,65 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 
 			if(linfo.ghcg.GetLength() != 0)
 			{
-				double cgcz = _tstof(linfo.sccg) - _tstof(linfo.ghcg);
-				sprintf(temp, (cgcz > 0) ? "+%.2lfm" : "%.2lfm", cgcz);
-				table.setCellText(row, 4, temp);
+				int scblxp = linfo.sccg.Find(_T("~"));
+				int ghblxp = linfo.ghcg.Find(_T("~"));
+				if (scblxp == -1)
+				{
+					if (ghblxp == -1)
+					{
+						double cgcz = _tstof(linfo.sccg) - _tstof(linfo.ghcg);
+						sprintf(temp, (cgcz > 0) ? "+%.2lfm" : "%.2lfm", cgcz);
+					}
+					else
+					{
+						double cgcz[2] = { 0 };
+						cgcz[0] = _tstof(linfo.sccg) - _tstof(linfo.ghcg.Mid(0, ghblxp));
+						sprintf(temp, (cgcz[0] > 0) ? "+%.2lfm" : "%.2lfm", cgcz[0]);
+						cgcz[1] = _tstof(linfo.sccg) - _tstof(linfo.ghcg.Mid(ghblxp + 1, linfo.ghcg.GetLength() - ghblxp - 1));
+						char temp2[1024] = { 0 };
+						sprintf(temp2, (cgcz[1] > 0) ? "~+%.2lfm" : "~%.2lfm", cgcz[1]);
+						sprintf(temp, "%s%s", temp, temp2);
+					}
+				}
+				else
+				{
+					if (linfo.ghcg.Find(_T("~")) == -1)
+					{
+						double cgcz[2] = { 0 };
+						cgcz[0] = _tstof(linfo.sccg.Mid(0, scblxp)) - _tstof(linfo.ghcg);
+						sprintf(temp, (cgcz[0] > 0) ? "+%.2lfm" : "%.2lfm", cgcz[0]);
+						cgcz[1] = _tstof(linfo.sccg.Mid(scblxp + 1, linfo.sccg.GetLength() - scblxp - 1)) - _tstof(linfo.ghcg);
+						char temp2[1024] = { 0 };
+						sprintf(temp2, (cgcz[1] > 0) ? "~+%.2lfm" : "~%.2lfm", cgcz[1]);
+						sprintf(temp, "%s%s", temp, temp2);
+					}
+					else
+					{
+						double cgcz[2] = { 0 };
+						cgcz[0] = _tstof(linfo.sccg.Mid(0, scblxp)) - _tstof(linfo.ghcg.Mid(0, ghblxp));
+						sprintf(temp, (cgcz[0] > 0) ? "+%.2lfm" : "%.2lfm", cgcz[0]);
+						cgcz[1] = _tstof(linfo.sccg.Mid(scblxp + 1, linfo.sccg.GetLength() - scblxp - 1))
+							- _tstof(linfo.ghcg.Mid(ghblxp + 1, linfo.ghcg.GetLength() - ghblxp - 1));
+						char temp2[1024] = { 0 };
+						sprintf(temp2, (cgcz[1] > 0) ? "~+%.2lfm" : "~%.2lfm", cgcz[1]);
+						sprintf(temp, "%s%s", temp, temp2);
+					}
+				}
 			}
+
+			if (linfo.ghjbcgxx.GetLength() != 0 && linfo.ghjbcgsx.GetLength() != 0 && linfo.scjbcgxx.GetLength() != 0 && linfo.scjbcgsx.GetLength() != 0)
+			{
+				double cgcz[2] = { 0 };
+				cgcz[0] = _tstof(linfo.scjbcgxx) - _tstof(linfo.ghjbcgxx);
+				cgcz[1] = _tstof(linfo.scjbcgsx) - _tstof(linfo.ghjbcgsx);
+				char temp2[1024] = { 0 }; 
+				sprintf(temp2, (cgcz[0] > 0) ? "+%.2lfm" : "%.2lfm", cgcz[0]);
+				char temp3[1024] = { 0 };
+				sprintf(temp3, (cgcz[1] > 0) ? "~+%.2lfm" : "~%.2lfm", cgcz[1]);
+				sprintf(temp, "%s\n%s%s", temp, temp2, temp3);
+			}
+			 
+			table.setCellText(row, 4, temp);
 
 #pragma endregion 高度差值
 
@@ -7546,7 +7699,7 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 #pragma region 建筑高度
 
 		TcharToChar(dlit->first, temp); scdinfo.append("\n"); ghdinfo.append("\n"); scdinfosm.append("\n");
-		scdinfo.append(temp); ghdinfo.append(temp); scdinfosm.append(temp);
+		scdinfo.append(temp); ghdinfo.append(temp); 
 		CString strSWDP = pdb.getBGTable(dlit->first, _T("室外地坪"));
 		CString strJZBG = pdb.getBGTable(dlit->first, _T("建筑标高"));
 		scdg = _tstof(strJZBG) - _tstof(strSWDP);
@@ -7554,8 +7707,7 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 		CString bgwz = pdb.getBGTable(dh, _T("标高位置"));
 		if(bgwz.CompareNoCase(_T("顶层")) == 0)
 			bgwz.Format(_T("%d"), layercount);
-		CString strLCGD; strLCGD.Format(_T("%.2lfm（自室外地坪标高%sm起算至%s%.2lfm止）"), scdg, strSWDP, bgwz, gaodu);
-		TcharToChar(strLCGD, temp);  scdinfosm.append(temp);
+		TcharToChar(zqszz[dlit->first], temp); scdinfosm.append(temp);//替换建筑高度
 		sprintf(temp, ": %.2lfm", scdg); scdinfo.append(temp);
 		MStr filter; filter[_T("楼栋号")] = dh;
 		MStr record = pdb.getDXXTableInfo(filter);
@@ -7589,7 +7741,7 @@ void XMJGHouse::replaceWordArea(SmartTable::Word &word)
 
 	word.replaceText("#GHJZGD#", ghdinfo.c_str());							//规划建筑高度
 
-	word.replaceText("#SCJZGD#", scdinfo.c_str());							//规划建筑高度
+	word.replaceText("#SCJZGD#", scdinfo.c_str());							//实测建筑高度
 	word.replaceText("#SCJZGDSM#", scdinfosm.c_str());
 	double jsydmj = _tstof(mjsm[_T("实测建筑用地面积")]);
 

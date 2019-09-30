@@ -53,6 +53,11 @@ BOOL CHeightPropertySettingDlg::OnInitDialog()
 {
 	CAcUiDialog::OnInitDialog();
 	initDialogListCtrl();
+	CString dwgName = GetCurrentDwgName();
+	int pos1 = dwgName.FindOneOf(_T("_"));
+	dwgName = dwgName.Mid(pos1 + 1);
+	pos1 = dwgName.FindOneOf(_T("."));
+	m_buildName = dwgName.Mid(0, pos1);
 	initListCtrlHeightValue();
 	initListCtrlBUildBGValue();
 	// TODO:  在此添加额外的初始化
@@ -93,11 +98,6 @@ void CHeightPropertySettingDlg::initDialogListCtrl()
 
 void CHeightPropertySettingDlg::initListCtrlHeightValue()
 {
-	CString dwgName = GetCurrentDwgName();
-	int pos1 = dwgName.FindOneOf(_T("_"));
-	dwgName = dwgName.Mid(pos1 + 1);
-	pos1 = dwgName.FindOneOf(_T("."));
-	m_buildName = dwgName.Mid(0, pos1);
 	MStr filter; filter[_T("楼栋号")] = m_buildName;
 	IProjectMDB pdb; VMStr records = pdb.getCXXTableInfoEx(filter);
 	for(int idx = 0; idx < records.size(); ++idx)
@@ -120,10 +120,12 @@ void CHeightPropertySettingDlg::saveListCtrlHeightValue()
 {
 	int row = m_settingHeight.GetItemCount();
 	IProjectMDB pdb;
+	MStr filter, record; filter[_T("楼栋号")] = m_buildName;
 	for(int idx = 0; idx < row; ++idx)
 	{
+		filter.clear(); record.clear();
 		CString lName = m_settingHeight.GetItemText(idx, 0);
-		int pos = lName.FindOneOf(_T(" ")); MStr filter, record;
+		int pos = lName.FindOneOf(_T(" "));
 		if(pos > 0)
 		{
 			filter[_T("起始层名")] = lName.Mid(0, pos);
@@ -133,7 +135,7 @@ void CHeightPropertySettingDlg::saveListCtrlHeightValue()
 		}
 		else
 			filter[_T("起始层名")] = lName;
-		CString info = m_settingHeight.GetItemText(idx, 1);	filter[_T("设计层高")] = info;
+		CString info = m_settingHeight.GetItemText(idx, 1); filter[_T("设计层高")] = info;
 		info = m_settingHeight.GetItemText(idx, 2); if(!info.IsEmpty())	record[_T("实测层高")] = info;
 		info = m_settingHeight.GetItemText(idx, 3); if(!info.IsEmpty()) record[_T("规划局部层高下限")] = info;
 		info = m_settingHeight.GetItemText(idx, 4); if(!info.IsEmpty()) record[_T("规划局部层高上限")] = info;
@@ -145,25 +147,20 @@ void CHeightPropertySettingDlg::saveListCtrlHeightValue()
 
 void CHeightPropertySettingDlg::initListCtrlBUildBGValue()
 {
-	CString dwgName = GetCurrentDwgName();
-	int pos1 = dwgName.FindOneOf(_T("_"));
-	dwgName = dwgName.Mid(pos1 + 1);
-	pos1 = dwgName.FindOneOf(_T("."));
-	m_buildName = dwgName.Mid(0, pos1); int row = 0;
 	MStr filter; filter[_T("楼栋号")] = m_buildName;
 	IProjectMDB pdb; VMStr records = pdb.getCXXTableInfoEx(filter);
 	for(int idx = 0; idx < records.size(); ++idx)
 	{
 		MStr record = records[idx]; CString lName;
-		if(record[_T("楼栋号")].CompareNoCase(m_buildName)) continue;
+		//if(record[_T("楼栋号")].CompareNoCase(m_buildName)) continue;
 		if(record[_T("终止层名")].IsEmpty()) lName.Format(_T("%s"), record[_T("起始层名")]);
 		else
 			lName.Format(_T("%s ----> %s"), record[_T("起始层名")], record[_T("终止层名")]);
-		m_buildBG.InsertItem(row, lName); int col = 1;
-		m_buildBG.SetItemText(row, col++, record[_T("室内地面")]);
-		m_buildBG.SetItemText(row, col++, record[_T("室外地坪")]);
-		m_buildBG.SetItemText(row, col++, record[_T("建筑高度")]);
-		m_buildBG.SetItemText(row++, col++, record[_T("标高位置")]);
+		m_buildBG.InsertItem(idx, lName); int col = 1;
+		m_buildBG.SetItemText(idx, col++, record[_T("室内地面")]);
+		m_buildBG.SetItemText(idx, col++, record[_T("室外地坪")]);
+		m_buildBG.SetItemText(idx, col++, record[_T("建筑高度")]);
+		m_buildBG.SetItemText(idx, col++, record[_T("标高位置")]);
 	}
 }
 
@@ -174,8 +171,9 @@ void CHeightPropertySettingDlg::saveListCtrlBUildBGValue()
 	filter[_T("楼栋号")] = m_buildName;
 	for(int idx = 0; idx < row; ++idx)
 	{
+		filter.clear(); record.clear();
 		CString lName = m_buildBG.GetItemText(idx, 0);
-		int pos = lName.FindOneOf(_T(" ")); MStr filter, record;
+		int pos = lName.FindOneOf(_T(" "));
 		if(pos > 0)
 		{
 			filter[_T("起始层名")] = lName.Mid(0, pos);
@@ -185,7 +183,7 @@ void CHeightPropertySettingDlg::saveListCtrlBUildBGValue()
 		}
 		else
 			filter[_T("起始层名")] = lName;
-		CString info = m_buildBG.GetItemText(idx, 1); record[_T("室内地面")] = info;
+		CString info = m_buildBG.GetItemText(idx, 1); if (!info.IsEmpty()) record[_T("室内地面")] = info;
 		info = m_buildBG.GetItemText(idx, 2); if(!info.IsEmpty()) record[_T("室外地坪")] = info;
 		info = m_buildBG.GetItemText(idx, 3); if(!info.IsEmpty()) record[_T("建筑高度")] = info;
 		info = m_buildBG.GetItemText(idx, 4); if(!info.IsEmpty()) record[_T("标高位置")] = info;
@@ -198,7 +196,7 @@ void CHeightPropertySettingDlg::OnSingleClickListForHeight(NMHDR *pNMHDR, LRESUL
 	NM_LISTVIEW *pNMListView = (NM_LISTVIEW *)pNMHDR;
 	int rowNo = pNMListView->iItem;
 	int colNo = pNMListView->iSubItem;
-	if(colNo >= 0 && colNo < m_settingHeight.GetItemCount() && rowNo >= 0)
+	if(colNo >= 0 && colNo < 7 && rowNo >= 0)
 	{
 		BeginEditorCommand(); ads_name ent; ads_point pt;
 		TCHAR txt[255] = {0};
@@ -215,7 +213,7 @@ void CHeightPropertySettingDlg::OnSingleClickListForBuildBG(NMHDR *pNMHDR, LRESU
 	NM_LISTVIEW *pNMListView = (NM_LISTVIEW *)pNMHDR;
 	int rowNo = pNMListView->iItem;
 	int colNo = pNMListView->iSubItem;
-	if(colNo >= 0 && colNo < m_buildBG.GetItemCount() && rowNo >= 0)	//判断单击位置是否在有数据的列表项上面
+	if(colNo >= 0 && colNo < 4 && rowNo >= 0)	//判断单击位置是否在有数据的列表项上面
 	{
 		BeginEditorCommand(); ads_name ent; ads_point pt;
 		TCHAR txt[255] = {0};
