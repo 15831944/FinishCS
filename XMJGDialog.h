@@ -1598,7 +1598,7 @@ public:
 	 * @作者 杨发荷
 	 * @时间 2017年10月30日
 	 */
-	void setWindowName(const CString &, const CString &, const CString &, const CString &);
+	void setWindowName(const CString &, const CString &, const CString &, const CString &, const CString &);
 
 	/* @接口
 	 * @返回 读取成功，返回值为true，否则返回值为false
@@ -1655,18 +1655,18 @@ public:
 
 private:
 
-	CString m_name;
-	CString m_type;
+	CString m_name;//放样名称
+	CString m_type;//CK、GC、CG
 	bool m_iscomplete;
-	CString m_zippath;
-	CString m_tempPath;
-	CString m_codename;
-	CString m_typePath;
-	CStringArray m_files;
+	CString m_zippath;//压缩文件夹路径
+	CString m_tempPath;//缓存文件夹路径
+	CString m_codename;//工程文件夹名称
+	CString m_typePath;//工程文件夹下子文件夹路径
+	CStringArray m_filesPath;//文件名集合
 	CStringArray m_temps;
 	CString m_projectname;
 	CString m_projectcode;
-	CString m_projectpath;
+	CString m_projectpath;//工程文件夹路径
 	CStringArray m_zipfile;
 
 };
@@ -2006,11 +2006,11 @@ public:
 private:
 
 	CString m_type;
-	CString m_path;
-	CString m_name;
-	CString m_zippath;
-	CString m_tempPath;
-	CString m_codename;
+	CString m_path;//当前工程文件夹目录
+	CString m_name;//放样名称
+	CString m_zippath;//压缩文件夹存储位置，是当前工程文件夹
+	CString m_tempPath;//缓存文件夹路径，是与当前工程文件夹同级的temp文件夹
+	CString m_codename;//工程文件夹名称，由受理号和项目名称组成，例如133344324_档案大楼
 
 public:
 	CEdit m_compresscode;

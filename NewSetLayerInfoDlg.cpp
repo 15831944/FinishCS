@@ -57,7 +57,7 @@ void CNewSetLayerInfoDlg::OnOK()
 	int col = m_LayerInfos.GetColumnCount();
 	IProjectMDB pdb; MStr filter;
 	filter[_T("楼栋号")] = m_buildName;
-	//pdb.delCXXTableInfo(filter);
+	VMStr delRecords = pdb.getCXXTableInfoEx(filter);
 	for(int idx = 0; idx < count; ++idx)
 	{
 		int offset = 1;
@@ -108,7 +108,7 @@ void CNewSetLayerInfoDlg::OnOK()
 		record[_T("楼层号")].Format(_T("%d"), idx + 1);
 		record[_T("是否跃层")].Format(_T("%s"), isLoftLayer);
 		VMStr selectrow;
-		if(pdb.getRecordCount(_T("CXX"), filter))
+		if (pdb.getRecordCount(_T("CXX"), filter))
 		{
 			pdb.updataCXXTableInfo(filter, record);
 			pdb.hasTableRow(_T("CXX"), filter, selectrow);
@@ -119,11 +119,21 @@ void CNewSetLayerInfoDlg::OnOK()
 		{
 			pdb.addCXXTableInfo(record);
 		}
+		for (VMSIter delRecordIter = delRecords.begin(); delRecordIter != delRecords.end(); delRecordIter++)
+		{
+			if ((*delRecordIter)[_T("楼栋号")].CompareNoCase(filter[_T("楼栋号")]) == 0 
+				&& (*delRecordIter)[_T("起始层名")].CompareNoCase(filter[_T("起始层名")]) == 0)
+				delRecordIter->clear();
+		}
 		if(m_isLayer)
 		{
 			m_smls[idx].m_sLayer = record[_T("起始层名")];
 			m_smls[idx].m_eLayer = record[_T("终止层名")];
 		}
+	}
+	for (VMSIter delRecordIter = delRecords.begin(); delRecordIter != delRecords.end(); delRecordIter++)
+	{
+		pdb.delCXXTableInfo(*delRecordIter);
 	}
 	CDialog::OnOK();
 }
@@ -334,8 +344,22 @@ void CNewSetLayerInfoDlg::OnBnClickedButtonMovedown()
 void CNewSetLayerInfoDlg::OnBnClickedButtonDellayer()
 {
 	// TODO:  在此添加控件通知处理程序代码
-	int sel = m_LayerInfos.GetSelectedItem();
-	m_LayerInfos.DeleteItem(sel);
+	POSITION pos = m_LayerInfos.GetFirstSelectedItemPosition();
+	if (pos == NULL)
+	{
+		MessageBox(_T("请点击要删除的所有记录行"), _T("删除提醒"),MB_ICONINFORMATION);
+		return;
+	}
+	vector<int> delnItems;
+	while (pos != NULL)//获取所有的选中行索引号
+	{
+		int nItem = m_LayerInfos.GetNextSelectedItem(pos);
+		delnItems.insert(delnItems.begin(), nItem);
+	}
+	for (vector<int>::iterator delnItemsIter = delnItems.begin(); delnItemsIter != delnItems.end(); delnItemsIter++)//根据选中行索引号删除所有的选中行
+	{
+		m_LayerInfos.DeleteItem((*delnItemsIter));
+	}
 }
 
 void CNewSetLayerInfoDlg::OnBnClickedButtonCopylayer()
@@ -351,7 +375,6 @@ void CNewSetLayerInfoDlg::OnBnClickedButtonCopylayer()
 		CString info = m_LayerInfos.GetItemText(count, idx);
 		m_LayerInfos.SetItemText(count + 1, idx, info);
 	}
-	m_LayerInfos.setSelectItem(count + 1);
 }
 
 void CNewSetLayerInfoDlg::OnBnClickedButtonSplitlayer()

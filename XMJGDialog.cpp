@@ -3205,34 +3205,30 @@ void XMJGSubCompressDlg::initListCtrl()
 
 void XMJGSubCompressDlg::setListCtrlData()
 {
-	m_tempPath = m_zippath + _T("\\temp");
-	m_typePath = m_tempPath + _T("\\规划\\") + m_type;
-	isExistFolder(m_typePath);
-	IDataBaseOper oper; MStr record; CStringArray paths, files;
+	IDataBaseOper oper; MStr record;
+	CStringArray filesName;
 	CString fileFilter = oper.readCommonTable(_T("过滤文件类型"));
-	m_projectpath = m_zippath + _T("\\") + m_codename + _T("\\规划\\") + m_type; int rowcount = 0;
-	CFilePathOperater::GetChildFile(m_projectpath, m_files, paths, false);
-	int count = m_files.GetSize();
-	for(int idx = count - 1; idx >= 0; --idx)
+	CFilePathOperater::GetChildFile(m_typePath, m_filesPath, filesName, false);
+	int filesCount = filesName.GetSize(); int idx = 0;
+	while (idx < filesCount)
 	{
-		CString path = m_files.GetAt(idx);
-		int pos = path.ReverseFind(_T('/'));
-		if(pos == -1) pos = path.ReverseFind(_T('\\'));
-		CString fileName = path.Mid(pos + 1);
-		pos = fileName.ReverseFind(_T('.'));
+		CString fileName = filesName.GetAt(idx);
+		int pos = fileName.ReverseFind(_T('.'));
+		if (pos == -1)
+		{
+			m_filesPath.RemoveAt(idx); filesName.RemoveAt(idx);
+			filesCount--; continue;
+		}
 		CString suffix = fileName.Mid(pos + 1);
-		if(fileFilter.Find(suffix) == -1) continue;
-		m_files.RemoveAt(idx);
-	}
-	for(int idx = 0; idx < m_files.GetSize(); ++idx)
-	{
-		CString path = m_files.GetAt(idx);
-		int pos = path.ReverseFind(_T('/'));
-		if(pos == -1) pos = path.ReverseFind(_T('\\'));
-		CString fileName = path.Mid(pos + 1);
+		if (fileFilter.Find(suffix) != -1)
+		{
+			m_filesPath.RemoveAt(idx); filesName.RemoveAt(idx);
+			filesCount--; continue;
+		}
 		m_compressfiles.InsertItem(idx, _T(""));
 		m_compressfiles.SetItemText(idx, 1, fileName);
 		m_compressfiles.SetCheck(idx);
+		idx++;
 	}
 }
 
@@ -3246,9 +3242,9 @@ void XMJGSubCompressDlg::judgeFileOccupy()
 		BOOL flag = m_compressfiles.GetCheck(idx);
 		if(flag == FALSE) continue;
 		CString listName = m_compressfiles.GetItemText(idx, 1);
-		for(int indx = 0; indx < m_files.GetSize(); ++indx)
+		for(int indx = 0; indx < m_filesPath.GetSize(); ++indx)
 		{
-			CString path = m_files.GetAt(indx);
+			CString path = m_filesPath.GetAt(indx);
 			if(path.Find(listName) == -1) continue;
 			if(_taccess(path, 0) == -1) continue;
 			file.Open(path, CFile::modeReadWrite);
@@ -3268,35 +3264,40 @@ CString XMJGSubCompressDlg::getCompressFiles()
 	{
 		BOOL flag = m_compressfiles.GetCheck(idx);
 		if(flag == FALSE) continue;
-		files += _T(" ") + m_files.GetAt(idx);
+		files += _T(" ") + m_filesPath.GetAt(idx);
 	}
 	return files;
 }
 
-void XMJGSubCompressDlg::setWindowName(const CString &name, const CString &zippath, const CString &codename, const CString &type)
+void XMJGSubCompressDlg::setWindowName(const CString &name, const CString &tempPath, const CString &zippath, const CString &codename, const CString &type)
 {
 	m_name.Format(_T("%s"), name);
-	m_type.Format(_T("%s"), type);
+	m_tempPath.Format(_T("%s"), tempPath);
 	m_zippath.Format(_T("%s"), zippath);
 	m_codename.Format(_T("%s"), codename);
+	m_type.Format(_T("%s"), type);
+	m_projectpath = m_zippath;
+	m_typePath = m_projectpath + _T("\\") + m_type;
 }
 
 void XMJGSubCompressDlg::OnOK()
 {
 	// TODO:  在此添加专用代码
-	VStr files; m_deficiencyfiles.clear(); CString name;
-	if(_taccess(m_tempPath, 0) == -1) _tmkdir(m_tempPath);
-	int count = m_compressfiles.GetItemCount();
-	for(int idx = 0; idx < count; ++idx)
+	VStr files; m_deficiencyfiles.clear();
+	CString m_tempTypePath = m_tempPath + _T("\\") + m_type;
+	isExistFolder(m_tempTypePath);
+	int filesCount = m_filesPath.GetCount();
+	for(int idx = 0; idx < filesCount; ++idx)
 	{
-		CString file = m_files.GetAt(idx);
-		int pos = file.ReverseFind(_T('\\'));
-		pos = pos == -1 ? file.ReverseFind(_T('/')) : pos;
-		name = file.Mid(pos);
 		BOOL flag = m_compressfiles.GetCheck(idx);
-		if(flag == FALSE) continue;
-		flag = CopyFile(file, m_tempPath + _T("\\规划\\") + m_type + name, FALSE);
-		files.push_back(file);
+		if (flag == FALSE) continue;
+		CString filePath = m_filesPath.GetAt(idx);
+		int pos = filePath.ReverseFind(_T('\\'));
+		if (pos == -1)pos = filePath.ReverseFind(_T('/'));
+		CString fileName = filePath.Mid(pos + 1);
+		flag = CopyFile(filePath, m_tempPath + _T("\\") + m_type + _T("\\") + fileName, FALSE);
+		if (flag == FALSE)continue;
+		files.push_back(filePath);
 	}
 	IDataBaseOper oper; VStr values;
 	oper.readCompressTable(m_name + _T("_") + m_type, values);
@@ -3321,7 +3322,7 @@ void XMJGSubCompressDlg::OnOK()
 
 void XMJGSubCompressDlg::addCompressFile(const CString &file)
 {
-	m_files.Add(file);
+	m_filesPath.Add(file);
 	int count = m_compressfiles.GetItemCount();
 	m_compressfiles.InsertItem(count, _T(""));
 	int pos = file.ReverseFind(_T('\\'));
@@ -3342,11 +3343,11 @@ void XMJGSubCompressDlg::deleteFiles()
 		bool flag = m_compressfiles.GetCheck(idx) == 1;
 		if(flag == false) continue;
 		CString name = m_compressfiles.GetItemText(idx, 1);
-		for(int indx = 0; indx < m_files.GetSize(); ++indx)
+		for(int indx = 0; indx < m_filesPath.GetSize(); ++indx)
 		{
-			CString file = m_files.GetAt(indx);
+			CString file = m_filesPath.GetAt(indx);
 			if(file.Find(name) == -1) continue;
-			m_files.RemoveAt(indx);
+			m_filesPath.RemoveAt(indx);
 		}
 		m_compressfiles.DeleteItem(idx);
 	}
@@ -4058,14 +4059,12 @@ CCompressDlg::CCompressDlg(const CString &name)
 {
 	IDataBaseOper oper;
 	m_path = oper.readPathTable(_T("当前目录"));
-	int pos = m_path.ReverseFind(_T('\\'));
-	m_tempPath = m_path.Mid(0, pos);
-	pos = m_tempPath.ReverseFind(_T('\\'));
-	m_codename = m_tempPath.Mid(pos + 1);
-	m_tempPath = m_tempPath.Mid(0, pos);
-	_trmdir(m_tempPath + _T("\\temp"));
-	//CFilePathOperater::SetHidden(m_tempPath + _T("\\temp"), true);
 	m_zippath = m_path;
+	int pos = m_path.ReverseFind(_T('\\'));
+	m_tempPath = m_path.Mid(0, pos) + _T("\\temp");
+	m_codename = m_path.Mid(pos + 1);
+	//_trmdir(m_tempPath);//删除空目录
+	//CFilePathOperater::SetHidden(m_tempPath + _T("\\temp"), true);
 }
 
 CCompressDlg::~CCompressDlg()
@@ -4100,13 +4099,14 @@ BOOL CCompressDlg::OnInitDialog()
 	m_tab.InsertItem(1, _T("过程数据"));
 	m_tab.InsertItem(2, _T("成果数据"));
 	CAcModuleResourceOverride myResource1;
-	m_subck.setWindowName(m_name, m_tempPath, m_codename, _T("CK")); m_subck.Create(IDD_DIALOG_SUBCOMPRESSDLG, &m_tab);
+	m_subck.setWindowName(m_name, m_tempPath, m_zippath, m_codename, _T("CK")); m_subck.Create(IDD_DIALOG_SUBCOMPRESSDLG, &m_tab);
 	CAcModuleResourceOverride myResource2;
-	m_subgc.setWindowName(m_name, m_tempPath, m_codename, _T("GC")); m_subgc.Create(IDD_DIALOG_SUBCOMPRESSDLG, &m_tab);
+	m_subgc.setWindowName(m_name, m_tempPath, m_zippath, m_codename, _T("GC")); m_subgc.Create(IDD_DIALOG_SUBCOMPRESSDLG, &m_tab);
 	CAcModuleResourceOverride myResource3;
-	m_subcg.setWindowName(m_name, m_tempPath, m_codename, _T("CG")); m_subcg.Create(IDD_DIALOG_SUBCOMPRESSDLG, &m_tab);
+	m_subcg.setWindowName(m_name, m_tempPath, m_zippath, m_codename, _T("CG")); m_subcg.Create(IDD_DIALOG_SUBCOMPRESSDLG, &m_tab);
 	CRect rect; m_tab.GetClientRect(&rect);
-	rect.top += 20; rect.bottom += 20; rect.right += 40;
+	rect.top += 20; 
+	//rect.bottom += 20; rect.right += 40;
 	m_subck.MoveWindow(&rect);
 	m_subgc.MoveWindow(&rect);
 	m_subcg.MoveWindow(&rect);
@@ -4120,25 +4120,13 @@ void CCompressDlg::OnOK()
 {
 	// TODO:  在此添加专用代码和/或调用基类
 	m_subcg.OnOK(); m_subgc.OnOK(); m_subck.OnOK();
-	CString srcmdb = m_tempPath + _T("\\") + m_codename + _T("\\项目基本信息.mdb");
-	if(_taccess(srcmdb, 0) == -1)
-	{
-		MessageBox(_T("[项目基本信息.mdb]不存在"), _T("错误信息"), 0);
-		return;
-	}
-	CString desmdb = m_tempPath + _T("\\temp\\项目基本信息.mdb");
-	if(FALSE == CopyFile(srcmdb, desmdb, FALSE))
-	{
-		MessageBox(_T("[项目基本信息]拷贝失败"), _T("错误信息"), 0);
-		return;
-	}
-	CDeficiencyFilesDlg dlg1(_T("缺少下列文件")); dlg1.addDeficiencyFile(m_subgc.m_deficiencyfiles);
-	dlg1.addDeficiencyFile(m_subck.m_deficiencyfiles); dlg1.addDeficiencyFile(m_subcg.m_deficiencyfiles);
+	CDeficiencyFilesDlg dlg1(_T("缺少下列文件")); 
+	dlg1.addDeficiencyFile(m_subgc.m_deficiencyfiles); dlg1.addDeficiencyFile(m_subck.m_deficiencyfiles); dlg1.addDeficiencyFile(m_subcg.m_deficiencyfiles);
 	if(dlg1.isDeficiencyFile() == true) { dlg1.DoModal(); return; }
-	SYSTEMTIME st = {0}; GetLocalTime(&st);
-	CString time; time.Format(_T("%d%02d%02d"), st.wYear, st.wMonth, st.wDay);
-	CString name = m_codename + _T("_") + time + _T(".zip");
-	ZRESULT zr = ZipUtils::CompressDirToZip(m_tempPath + _T("\\temp"), name, m_tempPath);
+	//SYSTEMTIME st = {0}; GetLocalTime(&st);
+	//CString time; time.Format(_T("%d%02d%02d"), st.wYear, st.wMonth, st.wDay);
+	CString name = m_codename + _T(".zip");
+	ZRESULT zr = ZipUtils::CompressDirToZip(m_tempPath, name, m_zippath);
 	MessageBox(zr == 0 ? _T("数据打包完成") : _T("打包失败！！！"), _T("信息提示"));
 	CDialog::OnOK();
 }
