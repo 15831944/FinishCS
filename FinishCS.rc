@@ -1978,6 +1978,11 @@ BEGIN
     0
 END
 
+IDD_DIALOG_FUNCTIONALAREAS AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //

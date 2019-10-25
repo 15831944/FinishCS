@@ -4060,8 +4060,8 @@ CCompressDlg::CCompressDlg(const CString &name)
 	IDataBaseOper oper;
 	m_path = oper.readPathTable(_T("当前目录"));
 	m_zippath = m_path;
+	m_tempPath = m_path + _T("\\temp");
 	int pos = m_path.ReverseFind(_T('\\'));
-	m_tempPath = m_path.Mid(0, pos) + _T("\\temp");
 	m_codename = m_path.Mid(pos + 1);
 	//_trmdir(m_tempPath);//删除空目录
 	//CFilePathOperater::SetHidden(m_tempPath + _T("\\temp"), true);

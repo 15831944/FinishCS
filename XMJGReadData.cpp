@@ -4278,15 +4278,15 @@ void XMJGHouse::StatisticFunctionArea()
 	_stprintf(gnqlayer, _T("%s"), m_gnq._layer);
 	for(int idx = 0; idx < fcpmids.length(); ++idx)//遍历所有的分层平面
 	{
-		AcDbObjectId fcpmid = fcpmids.at(idx);
-		ads_point pmin, pmax;
-		GetEntExtent(aname(fcpmid), pmin, pmax);
-		ZoomWindow(pmin, pmax);
-		AcGePoint2dArray fcpmnodes;
-		GetPlList(aname(fcpmid), fcpmnodes);
+		AcDbObjectId fcpmid = fcpmids.at(idx);//获得当前分层平面的ID号
+		ads_point pmin, pmax;//当前分层平面的左下和右上角点
+		GetEntExtent(aname(fcpmid), pmin, pmax);//获得分层平面的左下和右上角点
+		ZoomWindow(pmin, pmax);//缩放显示范围到当前分层平面
+		AcGePoint2dArray fcpmnodes;//分层平面
+		GetPlList(aname(fcpmid), fcpmnodes);//获得分层平面的节点
 		AcDbObjectIdArray gnqids, IdArr;
-		ssFromNodes(gnqids, fcpmnodes, 1, 1.0, _T("*POLYLINE"), gnqlayer);
-		RemoveIslandFunctionArea(gnqids);
+		ssFromNodes(gnqids, fcpmnodes, 1, 1.0, _T("*POLYLINE"), gnqlayer);//选择分层平面中的所有功能区
+		RemoveIslandFunctionArea(gnqids);//去除岛功能区
 		acutPrintf(_T("\n功能区的个数为%d"), gnqids.length());
 		TCHAR fcpmgd[25] = {0};
 		ReadXdata(aname(fcpmid), _T("楼层高"), 0, fcpmgd);
@@ -4294,7 +4294,7 @@ void XMJGHouse::StatisticFunctionArea()
 		{
 			TCHAR gnqgd[255] = { 0 };
 			ReadXdata(aname(gnqids[idxx]), _T("功能区高度"), 0, gnqgd);
-			if(_tcslen(gnqgd) == 0)
+			if(_tcslen(gnqgd) == 0)//如果功能区不存在高度信息，则视为与分层平面有相同高度
 				AddXdata(aname(gnqids[idxx]), _T("功能区高度"), 0, fcpmgd);
 		}
 		readFunctionInfo(gnqids, IdArr);
@@ -6248,7 +6248,7 @@ void XMJGHouse::addFunctionProperty(const AcDbObjectId &id, const FunctionNameTa
 {
 	AddXdata(aname(id), _T("功能区名称"), 0, fnt.name);
 	AddXdata(aname(id), _T("功能区编号"), 0, fnt.cn);
-	AddXdata(aname(id), _T("功能区简称"), 0, fnt.jm);
+	AddXdata(aname(id), _T("功能区简码"), 0, fnt.jm);
 	AddXdata(aname(id), _T("功能区高度"), 0, fnt.gaodu);
 	AddXdata(aname(id), _T("面积系数"), 0, fnt.mjxs);
 	AddXdata(aname(id), _T("计容系数"), 0, fnt.jrxs);
@@ -8225,13 +8225,17 @@ bool checkGongNengQuIntersect(const AcDbObjectId &fid, const AcDbObjectId &iid)
 void XMJGHouse::readFunctionInfo(const AcDbObjectIdArray &ids, AcDbObjectIdArray &idArr)
 {
 	//ids：功能区ID集合
-	int row = 10; 
-	int count = ids.length();
-	if(count <= 10)
-		row = count;
-	else
+	int row = 10;
 	{
-		if(RTCAN == ads_getint(_T("请输入一行注记面积个数<10>："), &row)) return;
+		int count = ids.length();
+		if (count < 11)
+			row = count;
+		else
+		{
+			int es = ads_getint(_T("请输入一行注记面积个数<10>："), &row);
+			if (RTCAN == es) return;
+			if (RTNORM != es)row = 10;
+		}
 	}
 	ads_point ptinsert;
 	if(RTNORM != ads_getpoint(NULL, _T("\n请拾取文字显示横向左侧最大边界点："), ptinsert)) return;
