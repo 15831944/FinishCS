@@ -4060,8 +4060,8 @@ CCompressDlg::CCompressDlg(const CString &name)
 	IDataBaseOper oper;
 	m_path = oper.readPathTable(_T("当前目录"));
 	m_zippath = m_path;
-	m_tempPath = m_path + _T("\\temp");
 	int pos = m_path.ReverseFind(_T('\\'));
+	m_tempPath = m_path.Mid(0,pos) + _T("\\temp");
 	m_codename = m_path.Mid(pos + 1);
 	//_trmdir(m_tempPath);//删除空目录
 	//CFilePathOperater::SetHidden(m_tempPath + _T("\\temp"), true);
@@ -4129,6 +4129,7 @@ void CCompressDlg::OnOK()
 	ZRESULT zr = ZipUtils::CompressDirToZip(m_tempPath, name, m_zippath);
 	MessageBox(zr == 0 ? _T("数据打包完成") : _T("打包失败！！！"), _T("信息提示"));
 	CDialog::OnOK();
+	DeleteDirectory(m_tempPath);
 }
 
 void deleteFile(const CString &path)
